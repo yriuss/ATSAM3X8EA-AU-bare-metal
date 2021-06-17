@@ -27,6 +27,10 @@ void gpio_set_group_mode(GPIO_TypeDef *port, uint32_t mask,
             port->MDER = mask;
         else
             port->MDDR = mask;
+        if (features & GPIO_SYNC_WRITE)
+            port->OWER = mask;
+        else
+            port->OWDR = mask;
         port->OER = mask;
         port->PER = mask;
     } else if ((io_mode == GPIO_AF1_MODE) ||

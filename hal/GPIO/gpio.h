@@ -14,6 +14,7 @@
 #define GPIO_PULLUP      0X01
 #define GPIO_OPENDRAIN   0X02
 #define GPIO_DEBOUNCE    0X04
+#define GPIO_SYNC_WRITE  0X08
 #define GPIO_FEATURES_Msk 0x0F
 
 
@@ -70,9 +71,8 @@
 #define gpio_clear_group(port, mask, offset)	\
     ((port)->CODR = ((mask) << (offset)))
 
-#define gpio_toggle_group(port, mask, offset)                     \
-    ((port)->ODSR = (((port)->ODSR) & ~((mask) << (offset))) |    \
-     ~((port)->ODSR & ((mask) << (offset))))
+#define gpio_toggle_group(port, mask, offset)                   \
+    ((port)->ODSR ^= ((mask) << (offset)))
 
 void gpio_set_group_mode(GPIO_TypeDef *port, uint32_t bitmask,
                          int offset, uint32_t mode);
