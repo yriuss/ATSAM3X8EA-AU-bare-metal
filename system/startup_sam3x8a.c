@@ -235,13 +235,6 @@ void Reset_Handler(void) {
     for (dst = &_bss_begin; dst < &_bss_end;)
         *dst++ = 0;
 
-    /* Set the vector table base address */
-    src = (uint32_t *) & _sfixed;
-    SCB->VTOR = ((uint32_t) src & SCB_VTOR_TBLOFF_Msk);
-
-    if (((uint32_t) src >= IRAM0_ADDR) && ((uint32_t) src < NFC_RAM_ADDR))
-        SCB->VTOR |= (1UL) << SCB_VTOR_TBLBASE_Pos;
-
     system_init();
     board_init();
     user_init();
@@ -260,4 +253,26 @@ void Reset_Handler(void) {
 void Dummy_Handler(void) {
     while (1) {
     }
+}
+
+
+/* Functions needed when optimizing code */
+void *memcpy(uint8_t *dest, const uint8_t *src, int n) {
+    int i;
+    uint8_t* rv = dest;
+
+    for (i=0; i<n; i++)
+        *dest++ = *src++;
+
+    return rv;
+}
+
+void *memset(uint8_t *s, int c, int n) {
+    int i;
+    uint8_t* ptr = s;
+
+    for (i=0; i<n; i++)
+        *ptr++ = c;
+
+    return s;
 }

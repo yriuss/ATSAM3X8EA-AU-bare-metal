@@ -97,9 +97,57 @@ typedef enum {
     PendSV_IRQn                 = -2,     /*!< 14 Cortex-M3 Pend SV Interrupt                       */
     SysTick_IRQn                = -1,     /*!< 15 Cortex-M3 System Tick Interrupt                   */
 
-    /******  STM32 specific Interrupt Numbers *********************************************************/
-    WWDG_IRQn                   = 0,      /*!< Window WatchDog Interrupt                            */
-    PVD_IRQn                    = 1,      /*!< PVD through EXTI Line detection Interrupt            */
+    /******  SAM3X specific Interrupt Numbers ******/
+    /******  From page 38 of the datasheet    ******/
+    SUPC_IRQn                   = 0,
+    RSTC_IRQn                   = 1,
+    RTC_IRQn                    = 2,
+    RTT_IRQn                    = 3,
+    WDG_IRQn                    = 4,
+    PMC_IRQn                    = 5,
+    EEFC0_IRQn                  = 6,
+    EEFC1_IRQn                  = 7,
+    UART_IRQn                   = 8,
+#if 0
+    _IRQn                   = 9,
+    _IRQn                   = 10,
+#endif
+    PIOA_IRQn                   = 11,
+    PIOB_IRQn                   = 12,
+    PIOC_IRQn                   = 13,
+    PIOD_IRQn                   = 14,
+    PIOE_IRQn                   = 15,
+    PIOF_IRQn                   = 16,
+    USART0_IRQn                 = 17,
+    USART1_IRQn                 = 18,
+    USART2_IRQn                 = 19,
+    USART3_IRQn                 = 20,
+#if 0
+    _IRQn                   = 21,
+    _IRQn                   = 22,
+    _IRQn                   = 23,
+    _IRQn                   = 24,
+    _IRQn                   = 25,
+    _IRQn                   = 26,
+    _IRQn                   = 27,
+    _IRQn                   = 28,
+    _IRQn                   = 29,
+    _IRQn                   = 30,
+    _IRQn                   = 31,
+    _IRQn                   = 32,
+    _IRQn                   = 33,
+    _IRQn                   = 34,
+    _IRQn                   = 35,
+    _IRQn                   = 36,
+    _IRQn                   = 37,
+    _IRQn                   = 38,
+    _IRQn                   = 39,
+    _IRQn                   = 40,
+    _IRQn                   = 41,
+    _IRQn                   = 42,
+    _IRQn                   = 43,
+    _IRQn                   = 44,
+#endif
 } IRQn_Type;
 
     /**
@@ -223,6 +271,19 @@ typedef struct {
   RoReg WDT_SR; /**< \brief (Wdt Offset: 0x08) Status Register */
 } Wdt_TypeDef;
 
+
+typedef struct {
+    WoReg CR;
+    RwReg MR;
+    WoReg IER;
+    WoReg IDR;
+    RoReg IMR;
+    RoReg SR;
+    RoReg RHR;
+    WoReg THR;
+    RwReg BRGR;
+} UART_TypeDef;
+
 /* */
 #define PMC   ((Pmc_TypeDef *)0x400E0600U) /**< \brief (PMC       ) Base Address */
 #define EFC0  ((Efc_TypeDef *)0x400E0A00U) /**< \brief (EFC0      ) Base Address */
@@ -232,6 +293,13 @@ typedef struct {
 #define GPIOB ((GPIO_TypeDef *) 0x400E1000U)
 #define GPIOC ((GPIO_TypeDef *) 0x400E1200U)
 #define GPIOD ((GPIO_TypeDef *) 0x400E1400U)
+#define UART  ((UART_TypeDef *) 0x400E0800U)
+/* TODO: Implement USART structure. For now, using the UART
+   structure */
+#define USART0 ((UART_TypeDef *) 0x40098000U)
+#define USART1 ((UART_TypeDef *) 0x4009C000U)
+#define USART2 ((UART_TypeDef *) 0x400A0000U)
+#define USART3 ((UART_TypeDef *) 0x400A4000U)
 
 
 #define EEFC_FMR_FWS_Pos 8
@@ -263,6 +331,18 @@ typedef struct {
 #define PMC_SR_MOSCRCS (0x1u << PMC_SR_MOSCRCS_Pos)
 #define PMC_SR_MCKRDY_Pos 3
 #define PMC_SR_MCKRDY (0x1u << PMC_SR_MCKRDY_Pos)
+#define PMC_PCER0_UART   (1U << UART_IRQn)
+#define PMC_PCER0_USART0 (1U << USART0_IRQn)
+#define PMC_PCER0_USART1 (1U << USART1_IRQn)
+#define PMC_PCER0_USART2 (1U << USART2_IRQn)
+#define PMC_PCER0_USART3 (1U << USART3_IRQn)
+#define PMC_PCER0_PIOA   (1U << PIOA_IRQn)
+#define PMC_PCER0_PIOB   (1U << PIOB_IRQn)
+#define PMC_PCER0_PIOC   (1U << PIOC_IRQn)
+#define PMC_PCER0_PIOD   (1U << PIOD_IRQn)
+#define PMC_PCER0_PIOE   (1U << PIOE_IRQn)
+#define PMC_PCER0_PIOF   (1U << PIOF_IRQn)
+
 #define CKGR_PLLAR_ONE (0x1u << 29)
 
 #define CKGR_PLLAR_DIVA_Pos 0
@@ -277,23 +357,23 @@ typedef struct {
 #define CKGR_PLLAR_ONE (0x1u << 29) /**< \brief (CKGR_PLLAR) Must Be Set to 1 */
 
 
-#define SYS_BOARD_PLLAR     (CKGR_PLLAR_ONE \
-							| CKGR_PLLAR_MULA(0x6UL) \
-							| CKGR_PLLAR_PLLACOUNT(0x3fUL) \
-							| CKGR_PLLAR_DIVA(0x1UL))
+#define SYS_BOARD_PLLAR (CKGR_PLLAR_ONE                                 \
+                         | CKGR_PLLAR_MULA(0x6UL)                       \
+                         | CKGR_PLLAR_PLLACOUNT(0x3fUL)                 \
+                         | CKGR_PLLAR_DIVA(0x1UL))
                             
-#define   PMC_MCKR_PRES_Pos 4
-#define   PMC_MCKR_PRES_Msk (0x7 << PMC_MCKR_PRES_Pos)
-#define   PMC_MCKR_PRES_CLK_1 0
-#define   PMC_MCKR_PRES_CLK_2 (0x1u << PMC_MCKR_PRES_Pos)
-#define   PMC_MCKR_PRES_CLK_4 (0x2u << PMC_MCKR_PRES_Pos)
-#define   PMC_MCKR_PRES_CLK_8 (0x3u << PMC_MCKR_PRES_Pos)
-#define   PMC_MCKR_PRES_CLK_16 (0x4u << PMC_MCKR_PRES_Pos)
-#define   PMC_MCKR_PRES_CLK_32 (0x5u << PMC_MCKR_PRES_Pos)
-#define   PMC_MCKR_PRES_CLK_64 (0x6u << PMC_MCKR_PRES_Pos)
-#define   PMC_MCKR_PRES_CLK_3 (0x7u << PMC_MCKR_PRES_Pos)
+#define PMC_MCKR_PRES_Pos 4
+#define PMC_MCKR_PRES_Msk (0x7 << PMC_MCKR_PRES_Pos)
+#define PMC_MCKR_PRES_CLK_1 0
+#define PMC_MCKR_PRES_CLK_2 (0x1u << PMC_MCKR_PRES_Pos)
+#define PMC_MCKR_PRES_CLK_4 (0x2u << PMC_MCKR_PRES_Pos)
+#define PMC_MCKR_PRES_CLK_8 (0x3u << PMC_MCKR_PRES_Pos)
+#define PMC_MCKR_PRES_CLK_16 (0x4u << PMC_MCKR_PRES_Pos)
+#define PMC_MCKR_PRES_CLK_32 (0x5u << PMC_MCKR_PRES_Pos)
+#define PMC_MCKR_PRES_CLK_64 (0x6u << PMC_MCKR_PRES_Pos)
+#define PMC_MCKR_PRES_CLK_3 (0x7u << PMC_MCKR_PRES_Pos)
 
-#define   PMC_MCKR_CSS_PLLA_CLK (0x2u << 0)
+#define PMC_MCKR_CSS_PLLA_CLK (0x2u << 0)
 #define SYS_BOARD_MCKR      (PMC_MCKR_PRES_CLK_1 | PMC_MCKR_CSS_PLLA_CLK)
 #define SYS_BOARD_OSCOUNT   (CKGR_MOR_MOSCXTST(0x8))
 
@@ -326,10 +406,64 @@ typedef struct {
 #define WDT_MR_WDIDLEHLT     (1UL << WDT_MR_WDIDLEHLT_Pos)
 #define WDT_MR_WDIDLEHLT_Msk WDT_MR_WDIDLEHLT
 
-/*adicionei abaixo*/
+#define UART_CR_RSTRX_Pos  2
+#define UART_CR_RSTRX      (1U << UART_CR_RSTRX_Pos)
+#define UART_CR_RSTTX_Pos  3
+#define UART_CR_RSTTX      (1U << UART_CR_RSTTX_Pos)
+#define UART_CR_RXEN_Pos   4
+#define UART_CR_RXEN       (1U << UART_CR_RXEN_Pos)
+#define UART_CR_RXDIS_Pos  5
+#define UART_CR_RXDIS      (1U << UART_CR_RXDIS_Pos)
+#define UART_CR_TXEN_Pos   6
+#define UART_CR_TXEN       (1U << UART_CR_TXEN_Pos)
+#define UART_CR_TXDIS_Pos  7
+#define UART_CR_TXDIS      (1U << UART_CR_TXDIS_Pos)
+#define UART_CR_RSTSTA_Pos 8
+#define UART_CR_RSTSTA     (1U << UART_CR_RSTSTA_Pos)
 
-
-
+#define UART_MR_PAR_Pos 9
+#define UART_MR_PAR_Msk   (0X7U << UART_MR_PAR_Pos)
+#define UART_MR_EVEN_PAR  (0X0U << UART_MR_PAR_Pos)
+#define UART_MR_ODD_PAR   (0X1U << UART_MR_PAR_Pos)
+#define UART_MR_SPACE_PAR (0X2U << UART_MR_PAR_Pos)
+#define UART_MR_MARK_PAR  (0X3U << UART_MR_PAR_Pos)
+#define UART_MR_NO_PAR    (0X4U << UART_MR_PAR_Pos)
+#define UART_MR_CHMODE_Pos 14
+#define UART_MR_CHMODE_Msk         (0x3U << UART_MR_CHMODE_Pos)
+#define UART_MR_CHMODE_NORMAL      (0x0U << UART_MR_CHMODE_Pos)
+#define UART_MR_CHMODE_AUTO        (0x1U << UART_MR_CHMODE_Pos)
+#define UART_MR_CHMODE_LOCAL_LOOP  (0x2U << UART_MR_CHMODE_Pos)
+#define UART_MR_CHMODE_REMOTE_LOOP (0x3U << UART_MR_CHMODE_Pos)
+#define UART_IMR_RXRDY_Pos   0
+#define UART_IMR_RXRDY       (1U << UART_IMR_RXRDY_Pos)
+#define UART_IMR_TXRDY_Pos   1
+#define UART_IMR_TXRDY       (1U << UART_IMR_TXRDY_Pos)
+#define UART_IMR_ENDRX_Pos   3
+#define UART_IMR_ENDRX       (1U << UART_IMR_ENDRX_Pos)
+#define UART_IMR_ENDTX_Pos   4
+#define UART_IMR_ENDTX       (1U << UART_IMR_ENDTX_Pos)
+#define UART_IMR_OVRE_Pos    5
+#define UART_IMR_OVRE        (1U << UART_IMR_OVRE_Pos)
+#define UART_IMR_FRAME_Pos   6
+#define UART_IMR_FRAME       (1U << UART_IMR_FRAME_Pos)
+#define UART_IMR_PARE_Pos    7
+#define UART_IMR_PARE        (1U << UART_IMR_PARE_Pos)
+#define UART_IMR_TXEMPTY_Pos 9
+#define UART_IMR_TXEMPTY     (1U << UART_IMR_TXEMPTY_Pos)
+#define UART_IMR_TXBUFE_Pos  11
+#define UART_IMR_TXBUFE      (1U << UART_IMR_TXBUFE_Pos)
+#define UART_IMR_RXBUFF_Pos  12
+#define UART_IMR_RXBUFF      (1U << UART_IMR_RXBUFF_Pos)
+#define UART_SR_RXRDY    UART_IMR_RXRDY
+#define UART_SR_TXRDY    UART_IMR_TXRDY
+#define UART_SR_ENDRX    UART_IMR_ENDRX
+#define UART_SR_ENDTX    UART_IMR_ENDTX
+#define UART_SR_OVRE     UART_IMR_OVRE
+#define UART_SR_FRAME    UART_IMR_FRAME
+#define UART_SR_PARE     UART_IMR_PARE
+#define UART_SR_TXEMPTY  UART_IMR_TXEMPTY
+#define UART_SR_TXBUFE   UART_IMR_TXBUFE
+#define UART_SR_RXBUFF   UART_IMR_RXBUFF
 
 
 #if 0
@@ -445,173 +579,6 @@ typedef struct {
     uint32_t DMAR;            /*!< TIM DMA address for full transfer register,  Address offset: 0x4C */
     uint32_t OR;              /*!< TIM option register,                         Address offset: 0x50 */
 } TIM_TypeDef;
-
-
-    /**
-     * @brief Universal Synchronous Asynchronous Receiver Transmitter
-     */
-
-typedef struct {
-    uint32_t SR;         /*!< USART Status register,                   Address offset: 0x00 */
-    uint32_t DR;         /*!< USART Data register,                     Address offset: 0x04 */
-    uint32_t BRR;        /*!< USART Baud rate register,                Address offset: 0x08 */
-    uint32_t CR1;        /*!< USART Control register 1,                Address offset: 0x0C */
-    uint32_t CR2;        /*!< USART Control register 2,                Address offset: 0x10 */
-    uint32_t CR3;        /*!< USART Control register 3,                Address offset: 0x14 */
-    uint32_t GTPR;       /*!< USART Guard time and prescaler register, Address offset: 0x18 */
-} USART_TypeDef;
-
-    /** @addtogroup Peripheral_memory_map
-     * @{
-     */
-
-    /* Values taken from page 31 of the SAM3X8A datasheet */
-
-#define FLASH0_BASE           0x00080000UL /*!< FLASH base address in the alias region */
-#define FLASH0_END            0x000BFFFFUL /*!< FLASH END address of bank1 */
-#define FLASH1_BASE           0x000C0000UL /*!< FLASH base address in the alias region for a 512KB product */
-#define FLASH1_END            0x000FFFFFUL /*!< FLASH END address of bank1 */
-#define ROM_BASE              0x00100000UL /*!< ROM base address in the alias region */
-
-#define SRAM0_BASE            0x20000000UL /*!< SRAM base address in the alias region */
-#define SRAM1_BASE            0x20080000UL /*!< SRAM base address in the alias region */
-
-#define PERIPH_BASE           0x40000000UL /*!< Peripheral base address in the alias region */
-
-#define SRAM_BB_BASE          0x22000000UL /*!< SRAM base address in the bit-band region */
-
-#define HSMCI_BASE           (PERIPH_BASE + 0x00000000UL)
-#define SSC_BASE             (PERIPH_BASE + 0x00004000UL)
-#define SPI0_BASE            (PERIPH_BASE + 0x00008000UL)
-#define SPI1_BASE            (PERIPH_BASE + 0x0000C000UL)
-#define TC0_BASE             (PERIPH_BASE + 0x00080000UL)
-#define TC1_BASE             (PERIPH_BASE + 0x00080040UL)
-#define TC2_BASE             (PERIPH_BASE + 0x00080080UL)
-#define TC3_BASE             (PERIPH_BASE + 0x00084000UL)
-
-#define SYS_CTRLR_BASE       (PERIPH_BASE + 0x000E0000UL)
-
-#define SMC_BASE             (SYS_CTRLR_BASE + 0x00000000UL)
-#define PIOA_BASE            (SYS_CTRLR_BASE + 0x00000E00UL)
-#define PIOB_BASE            (SYS_CTRLR_BASE + 0x00001000UL)
-#define PIOC_BASE            (SYS_CTRLR_BASE + 0x00001200UL)
-#define PIOD_BASE            (SYS_CTRLR_BASE + 0x00001400UL)
-#define PIOE_BASE            (SYS_CTRLR_BASE + 0x00001600UL)
-#define PIOF_BASE            (SYS_CTRLR_BASE + 0x00001800UL)
-
-
-    /** @addtogroup Peripheral_declaration
-     * @{
-     */
-
-#define PIOA               ((GPIO_TypeDef *)PIOA_BASE)
-#define PIOB               ((GPIO_TypeDef *)PIOB_BASE)
-#define PIOC               ((GPIO_TypeDef *)PIOC_BASE)
-#define PIOD               ((GPIO_TypeDef *)PIOD_BASE)
-#define PIOE               ((GPIO_TypeDef *)PIOE_BASE)
-#define PIOF               ((GPIO_TypeDef *)PIOF_BASE)
-#define ADC1                ((ADC_TypeDef *)ADC1_BASE)
-#define ADC2                ((ADC_TypeDef *)ADC2_BASE)
-#define ADC12_COMMON        ((ADC_Common_TypeDef *)ADC1_BASE)
-#define TIM1                ((TIM_TypeDef *)TIM1_BASE)
-#define USART1              ((USART_TypeDef *)USART1_BASE)
-#define I2C1                ((I2C_TypeDef *)I2C1_BASE)
-#define SPI1                ((SPI_TypeDef *)SPI1_BASE)
-#define DMA1                ((DMA_TypeDef *)DMA1_BASE)
-#define DMA1_Channel1       ((DMA_Channel_TypeDef *)DMA1_Channel1_BASE)
-#define DMA1_Channel2       ((DMA_Channel_TypeDef *)DMA1_Channel2_BASE)
-#define DMA1_Channel3       ((DMA_Channel_TypeDef *)DMA1_Channel3_BASE)
-#define DMA1_Channel4       ((DMA_Channel_TypeDef *)DMA1_Channel4_BASE)
-#define DMA1_Channel5       ((DMA_Channel_TypeDef *)DMA1_Channel5_BASE)
-#define DMA1_Channel6       ((DMA_Channel_TypeDef *)DMA1_Channel6_BASE)
-#define DMA1_Channel7       ((DMA_Channel_TypeDef *)DMA1_Channel7_BASE)
-
-    /******************************************************************************/
-    /*                         Peripheral Registers_Bits_Definition               */
-    /******************************************************************************/
-
-    /******************************************************************************/
-    /*                                                                            */
-    /*                General Purpose and Alternate Function I/O                  */
-    /*                                                                            */
-    /******************************************************************************/
-
-    /*******************  Bit definition for GPIO_CRL register  *******************/
-#define GPIO_CRL_MODE_Pos                    (0U)
-#define GPIO_CRL_MODE_Msk                    (0x33333333UL << GPIO_CRL_MODE_Pos) /*!< 0x33333333 */
-#define GPIO_CRL_MODE                        GPIO_CRL_MODE_Msk                 /*!< Port x mode bits */
-
-    /******************************************************************************/
-    /*                                                                            */
-    /*                             DMA Controller                                 */
-    /*                                                                            */
-    /******************************************************************************/
-
-    /*******************  Bit definition for DMA_ISR register  ********************/
-#define DMA_ISR_GIF1_Pos                    (0U)
-#define DMA_ISR_GIF1_Msk                    (0x1UL << DMA_ISR_GIF1_Pos)         /*!< 0x00000001 */
-#define DMA_ISR_GIF1                        DMA_ISR_GIF1_Msk                   /*!< Channel 1 Global interrupt flag */
-
-    /******************************************************************************/
-    /*                                                                            */
-    /*                      Analog to Digital Converter (ADC)                     */
-    /*                                                                            */
-    /******************************************************************************/
-
-    /*
-     * @brief Specific device feature definitions (not present on all devices in the STM32F1 family)
-     */
-#define ADC_MULTIMODE_SUPPORT                          /*!< ADC feature available only on specific devices: multimode available on devices with several ADC instances */
-
-    /********************  Bit definition for ADC_SR register  ********************/
-#define ADC_SR_AWD_Pos                      (0U)
-#define ADC_SR_AWD_Msk                      (0x1UL << ADC_SR_AWD_Pos)           /*!< 0x00000001 */
-#define ADC_SR_AWD                          ADC_SR_AWD_Msk                     /*!< ADC analog watchdog 1 flag */
-
-    /*****************************************************************************/
-      /*                                                                           */
-    /*                               Timers (TIM)                                */
-    /*                                                                           */
-    /*****************************************************************************/
-    /*******************  Bit definition for TIM_CR1 register  *******************/
-#define TIM_CR1_CEN_Pos                     (0U)
-#define TIM_CR1_CEN_Msk                     (0x1UL << TIM_CR1_CEN_Pos)          /*!< 0x00000001 */
-#define TIM_CR1_CEN                         TIM_CR1_CEN_Msk                    /*!<Counter enable */
-
-
-    /******************************************************************************/
-    /*                                                                            */
-    /*                        Serial Peripheral Interface                         */
-    /*                                                                            */
-    /******************************************************************************/
-
-    /*******************  Bit definition for SPI_CR1 register  ********************/
-#define SPI_CR1_CPHA_Pos                    (0U)
-#define SPI_CR1_CPHA_Msk                    (0x1UL << SPI_CR1_CPHA_Pos)         /*!< 0x00000001 */
-#define SPI_CR1_CPHA                        SPI_CR1_CPHA_Msk                   /*!< Clock Phase */
-
-    /******************************************************************************/
-    /*                                                                            */
-    /*                      Inter-integrated Circuit Interface                    */
-    /*                                                                            */
-    /******************************************************************************/
-
-    /*******************  Bit definition for I2C_CR1 register  ********************/
-#define I2C_CR1_PE_Pos                      (0U)
-#define I2C_CR1_PE_Msk                      (0x1UL << I2C_CR1_PE_Pos)           /*!< 0x00000001 */
-#define I2C_CR1_PE                          I2C_CR1_PE_Msk                     /*!< Peripheral Enable */
-
-    /******************************************************************************/
-    /*                                                                            */
-    /*         Universal Synchronous Asynchronous Receiver Transmitter            */
-    /*                                                                            */
-    /******************************************************************************/
-
-    /*******************  Bit definition for USART_SR register  *******************/
-#define USART_SR_PE_Pos                     (0U)
-#define USART_SR_PE_Msk                     (0x1UL << USART_SR_PE_Pos)          /*!< 0x00000001 */
-#define USART_SR_PE                         USART_SR_PE_Msk                    /*!< Parity Error */
-
 #endif
 
 #ifdef __cplusplus

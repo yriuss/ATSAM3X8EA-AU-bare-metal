@@ -8,7 +8,7 @@ if len(sys.argv) == 1:
 else:
     baudrate = int(sys.argv[1])
 
-port_name = "/dev/ttyUSB0"
+port_name = "/dev/ttyACM0"
 with serial.Serial(port_name, baudrate) as ser:
     print("Writing on the serial port {}".format(port_name))
     for n in range(1000):

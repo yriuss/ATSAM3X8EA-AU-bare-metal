@@ -1,9 +1,10 @@
 #include <stdint.h>
-#include "gpio.h" 
+#include "gpio.h"
+#include "pmc.h"
 
 
 void gpio_set_group_mode(GPIO_TypeDef *port, uint32_t mask,
-                         int offset, uint32_t mode) {
+                         int offset, gpio_mode_t mode) {
     uint32_t io_mode = mode & GPIO_MODE_Msk;
     uint32_t features = mode & GPIO_FEATURES_Msk;
 
@@ -39,5 +40,12 @@ void gpio_set_group_mode(GPIO_TypeDef *port, uint32_t mask,
             (port->ABSR & ~(mask << offset)) :
             (port->ABSR | (mask << offset));
         port->PDR = mask;
+    }
+
+    if (io_mode != GPIO_OUTPUT_MODE) {
+        (port == GPIOA) && PMC_GPIOA_CLK_ENABLE();
+        (port == GPIOB) && PMC_GPIOB_CLK_ENABLE();
+        (port == GPIOC) && PMC_GPIOC_CLK_ENABLE();
+        (port == GPIOD) && PMC_GPIOD_CLK_ENABLE();
     }
 }

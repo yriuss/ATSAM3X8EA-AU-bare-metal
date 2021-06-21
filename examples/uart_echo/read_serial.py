@@ -7,6 +7,6 @@ if len(sys.argv) == 1:
 else:
     baudrate = int(sys.argv[1])
 
-with serial.Serial("/dev/ttyUSB0", baudrate) as ser:
+with serial.Serial("/dev/ttyACM0", baudrate) as ser:
     while 1:
         print(ser.read(12))

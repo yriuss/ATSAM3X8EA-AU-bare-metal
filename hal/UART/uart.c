@@ -1,59 +1,86 @@
 #include <stdint.h>
-#include "stm32f103xb.h"
+#include "sam3x8a.h"
+#if 0
 #include "dma.h"
+#endif
 #include "uart.h"
 #include "buffers.h"
-#include "rcc.h"
+#include "pmc.h"
 #include "reactor.h"
 
 
-uart_pindata_t pin_cfgs[] = {{GPIOA,  9, 10, SPEED_2_MHZ},
-			     {GPIOA,  2,  3, SPEED_2_MHZ},
-			     {GPIOB, 10, 11, SPEED_2_MHZ}};
+const uart_pindata_t pin_cfgs[] = {{GPIOA,  9,  8, GPIO_AF1_MODE},
+                                   {GPIOA, 11, 10, GPIO_AF1_MODE},
+                                   {GPIOA, 13, 12, GPIO_AF1_MODE},
+                                   {GPIOB, 20, 21, GPIO_AF1_MODE},
+                                   {GPIOD,  4,  5, GPIO_AF2_MODE}};
 
 uart_t SD1;
 uart_t SD2;
 uart_t SD3;
+uart_t SD4;
+uart_t SD5;
 
 void uart_init() {
-    SD1.dev = USART1;
-    SD1.pins = pin_cfgs;
+    SD1.dev = UART;
+    SD1.pins = pin_cfgs[0];
     SD1.last_error_code = 0;
     SD1.rx_threshold = 0;
     SD1.rx_complete_cb = 0;
     SD1.tx_complete_cb = 0;
     SD1.error_cb = 0;
 
-    SD2.dev = USART2;
-    SD2.pins = pin_cfgs + 1;
+    SD2.dev = USART0;
+    SD2.pins = pin_cfgs[1];
     SD2.last_error_code = 0;
     SD2.rx_threshold = 0;
     SD2.rx_complete_cb = 0;
     SD2.tx_complete_cb = 0;
     SD2.error_cb = 0;
 
-    SD3.dev = USART3;
-    SD3.pins = pin_cfgs + 2;
+    SD3.dev = USART1;
+    SD3.pins = pin_cfgs[2];
     SD3.last_error_code = 0;
     SD3.rx_threshold = 0;
     SD3.rx_complete_cb = 0;
     SD3.tx_complete_cb = 0;
     SD3.error_cb = 0;
 
+    SD4.dev = USART2;
+    SD4.pins = pin_cfgs[3];
+    SD4.last_error_code = 0;
+    SD4.rx_threshold = 0;
+    SD4.rx_complete_cb = 0;
+    SD4.tx_complete_cb = 0;
+    SD4.error_cb = 0;
+
+    SD5.dev = USART3;
+    SD5.pins = pin_cfgs[4];
+    SD5.last_error_code = 0;
+    SD5.rx_threshold = 0;
+    SD5.rx_complete_cb = 0;
+    SD5.tx_complete_cb = 0;
+    SD5.error_cb = 0;
+
 #if UART_USE_DMA == 1
-    SD1.dma_rx_channel = DMA_UART1_RX_CHANNEL;
-    SD1.dma_tx_channel = DMA_UART1_TX_CHANNEL;
+    SD1.dma_rx_channel = DMA_UART_RX_CHANNEL;
+    SD1.dma_tx_channel = DMA_UART_TX_CHANNEL;
 
-    SD2.dma_rx_channel = DMA_UART2_RX_CHANNEL;
-    SD2.dma_tx_channel = DMA_UART2_TX_CHANNEL;
+    SD2.dma_rx_channel = DMA_USART0_RX_CHANNEL;
+    SD2.dma_tx_channel = DMA_USART0_TX_CHANNEL;
 
-    SD3.dma_rx_channel = DMA_UART3_RX_CHANNEL;
-    SD3.dma_tx_channel = DMA_UART3_TX_CHANNEL;
+    SD3.dma_rx_channel = DMA_USART1_RX_CHANNEL;
+    SD3.dma_tx_channel = DMA_USART1_TX_CHANNEL;
+
+    SD4.dma_rx_channel = DMA_USART2_RX_CHANNEL;
+    SD4.dma_tx_channel = DMA_USART2_TX_CHANNEL;
+
+    SD5.dma_rx_channel = DMA_USART3_RX_CHANNEL;
+    SD5.dma_tx_channel = DMA_USART3_TX_CHANNEL;
 #endif /* UART_USE_DMA */
 }
 
 void uart_start(uart_t* drv, uart_config_t* config) {
-    uint16_t cr1;
     uint32_t fck;
 
     drv->rx_threshold = config->rx_threshold > UART_BUFFER_SIZE - 1 ?
@@ -62,15 +89,6 @@ void uart_start(uart_t* drv, uart_config_t* config) {
     drv->tx_complete_cb = config->tx_complete_cb;
     drv->error_cb = config->error_cb;
 
-    RCC_AFIO_CLK_ENABLE();
-    if (drv == &SD1) {
-	RCC_USART1_CLK_ENABLE();
-    } else if (drv == &SD2) {
-	RCC_USART2_CLK_ENABLE();
-    } else if (drv == &SD3) {
-	RCC_USART3_CLK_ENABLE();
-    }
-
     buffer_reset(drv->tx_buf);
     buffer_reset(drv->rx_buf);
 
@@ -78,59 +96,81 @@ void uart_start(uart_t* drv, uart_config_t* config) {
     dma_start(&DMAD1);
 #endif /* UART_USE_DMA */
 
-    gpio_set_pin_mode(drv->pins->port, drv->pins->tx_pin, OUT_AF_PUSHPULL);
-    gpio_set_pin_mode(drv->pins->port, drv->pins->rx_pin, IN_PULLUP);
+    gpio_set_pin_mode(drv->pins.port, drv->pins.tx_pin, drv->pins.mode);
+    gpio_set_pin_mode(drv->pins.port, drv->pins.rx_pin, drv->pins.mode);
 
-    /* Enable usart module, receiver and receive interrupt */
-    cr1 = USART_CR1_UE | USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_TE;
+    if (drv == &SD1) {
+	NVIC_EnableIRQ(UART_IRQn);
+	NVIC_SetPriority(UART_IRQn, 7); /* Middle Range priority */
+	PMC_UART_CLK_ENABLE();
+    } else if (drv == &SD2) {
+	NVIC_EnableIRQ(USART0_IRQn);
+	NVIC_SetPriority(USART0_IRQn, 7); /* Middle Range priority */
+	PMC_USART0_CLK_ENABLE();
+    } else if (drv == &SD3) {
+	NVIC_EnableIRQ(USART1_IRQn);
+	NVIC_SetPriority(USART1_IRQn, 7); /* Middle Range priority */
+	PMC_USART1_CLK_ENABLE();
+    } else if (drv == &SD4) {
+	NVIC_EnableIRQ(USART2_IRQn);
+	NVIC_SetPriority(USART2_IRQn, 7); /* Middle Range priority */
+	PMC_USART2_CLK_ENABLE();
+    } else if (drv == &SD5) {
+	NVIC_EnableIRQ(USART3_IRQn);
+	NVIC_SetPriority(USART3_IRQn, 7); /* Middle Range priority */
+	PMC_USART3_CLK_ENABLE();
+    }
 
-    /* Compute the BRR value based on a APB2 clock speed of 72 MHz */
-    /* TODO: write the logic for the other UARTs and other AHB clock
+    /* Compute the BRR value based on an MCK clock speed of 84 MHz */
+    /* TODO: write the logic for the other UARTs and other clock
        speeds */
-    fck = 72000000 / config->baudrate;
+    fck = (84000000 / config->baudrate) >> 4;
 
-    /* TODO: Configure for parity, word length, and error detection */
+    /* TODO: Make configuration flexible for parity, word length, and
+       error detection */
     /* TODO: Support for Synchronous mode, half duplex mode and CTS
        and HW flow control */
     /* TODO: Support for LIN, IrDA and smartcard */
-    drv->dev->CR1 = cr1;
-    drv->dev->BRR = fck;
-
-    (void) drv->dev->SR;  /* Error flags reset step 1.*/
-    (void) drv->dev->DR;  /* Error flags reset step 2.*/
-
-    if (drv == &SD1) {
-	NVIC_EnableIRQ(USART1_IRQn);
-	NVIC_SetPriority(USART1_IRQn, 7); /* Middle Range priority */
-    } else if (drv == &SD2) {
-	NVIC_EnableIRQ(USART2_IRQn);
-	NVIC_SetPriority(USART2_IRQn, 7); /* Middle Range priority */
-    } else if (drv == &SD3) {
-	NVIC_EnableIRQ(USART3_IRQn);
-	NVIC_SetPriority(USART3_IRQn, 7); /* Middle Range priority */
-    }
+    /* Enable usart module, receiver and receive interrupt, with 8N1
+       communication */
+    drv->dev->CR  = UART_CR_RSTSTA | UART_CR_RSTRX | UART_CR_RSTTX;
+    drv->dev->CR  = UART_CR_RXEN;
+    drv->dev->MR  = UART_MR_NO_PAR | UART_MR_CHMODE_NORMAL;
+    drv->dev->IER = UART_IMR_RXRDY | UART_IMR_PARE |
+        UART_IMR_FRAME | UART_IMR_OVRE;
+        
+    drv->dev->BRGR = fck;
 }
 
 void uart_stop(uart_t* drv) {
-    /* We don't disable the AFIO clock since someone else may be using
-       it */
+    drv->dev->CR = UART_CR_RXDIS | UART_CR_TXDIS;
+    while (!(drv->dev->SR & UART_SR_TXEMPTY))
+        ;
+
     if (drv == &SD1) {
-	NVIC_DisableIRQ(USART1_IRQn);
-	RCC_USART1_CLK_DISABLE();
+	PMC_UART_CLK_DISABLE();
+	NVIC_DisableIRQ(UART_IRQn);
     } else if (drv == &SD2) {
-	NVIC_DisableIRQ(USART2_IRQn);
-	RCC_USART2_CLK_DISABLE();
+	PMC_USART0_CLK_DISABLE();
+	NVIC_DisableIRQ(USART0_IRQn);
     } else if (drv == &SD3) {
+	PMC_USART1_CLK_DISABLE();
+	NVIC_DisableIRQ(USART1_IRQn);
+    } else if (drv == &SD4) {
+	PMC_USART2_CLK_DISABLE();
+	NVIC_DisableIRQ(USART2_IRQn);
+    } else if (drv == &SD5) {
+	PMC_USART3_CLK_DISABLE();
 	NVIC_DisableIRQ(USART3_IRQn);
-	RCC_USART3_CLK_DISABLE();
     }
 
-    drv->dev->CR1 = drv->dev->CR2 = drv->dev->CR3 = 0;
+    drv->dev->IDR = UART_IMR_RXRDY;
 }
 
 #define uart_pos_push_action(buf, c, ret_val) {}
-#define uart_buffer_push(buf, c, ret_val) buffer_generic_push(buf, c, ret_val,\
-							      BUFFER_PUSH_FULL_ACTION, uart_pos_push_action)
+#define uart_buffer_push(buf, c, ret_val)                               \
+    buffer_generic_push(buf, c, ret_val,                                \
+                        BUFFER_PUSH_FULL_ACTION, uart_pos_push_action)
 uint8_t uart_putc(uart_t* drv, uint8_t c) {
     uint8_t rv;
 
@@ -140,20 +180,21 @@ uint8_t uart_putc(uart_t* drv, uint8_t c) {
 #endif
 
     uart_buffer_push(drv->tx_buf, c, rv);
-    drv->dev->CR1 |= USART_CR1_TXEIE;
+    drv->dev->IER = UART_IMR_TXRDY;
+    drv->dev->CR = UART_CR_TXEN;
     return rv;
 }
 
 #define uart_pos_pop_action(buf, c) {}
-#define uart_buffer_pop(buf, c) buffer_generic_pop(buf, c, BUFFER_POP_EMPTY_ACTION, \
-						   uart_pos_pop_action)
+#define uart_buffer_pop(buf, c)                                         \
+    buffer_generic_pop(buf, c, BUFFER_POP_EMPTY_ACTION,                 \
+                       uart_pos_pop_action)
 uint16_t uart_getc(uart_t* drv) {
     uint16_t c = 0;
     uart_buffer_pop(drv->rx_buf, c);
     return c;
 }
 
-uint32_t ll = 1 << 13;
 int uart_write(uart_t* drv, const uint8_t *msg, int n) {
     int ctr = 0;
     uint8_t rv = 0;
@@ -169,7 +210,8 @@ int uart_write(uart_t* drv, const uint8_t *msg, int n) {
 	uart_buffer_push(drv->tx_buf, *msg, rv);
 	msg++;
     }
-    drv->dev->CR1 |= USART_CR1_TXEIE;
+    drv->dev->IER = UART_IMR_TXRDY;
+    drv->dev->CR = UART_CR_TXEN;
     return --ctr;
 }
 
@@ -276,35 +318,149 @@ int uart_read_dma(uart_t* drv, uint8_t *buf, int n, reactor_cb_t read_end_cb) {
 
 
 /*
- * IRQ handler definitions
+ * IRQ handler definitions 
+ * TODO: Implement the USART handlers (only the UART is implemented)
  */
 #define uart_irq_pos_pop_action(buf, c) do {	\
     } while (0)
-#define uart_irq_pop_empty_action(buf, c) do {				\
-	(USART1->CR1 = cr1 & ~USART_CR1_TXEIE);				\
-	if (SD1.tx_complete_cb)						\
-	    reactor_add_handler(SD1.tx_complete_cb, (hcos_word_t) &SD1); \
+#define uart_irq_pop_empty_action(buf, c) do {         \
+	UART->IDR = UART_IMR_TXRDY;                    \
+	if (SD1.tx_complete_cb)                        \
+	    reactor_add_handler(SD1.tx_complete_cb,    \
+                                (hcos_word_t) &SD1);   \
     } while(0)
-#define uart_irq_buffer_pop(buf, c) buffer_generic_pop(buf, c, uart_irq_pop_empty_action, \
-						   uart_irq_pos_pop_action)
-void USART1_IRQHandler() {
-    uint16_t st = USART1->SR;
-    uint32_t cr1 = USART1->CR1;
-    uint32_t errorflags;
+#define uart_irq_buffer_pop(buf, c)                        \
+    buffer_generic_pop(buf, c, uart_irq_pop_empty_action,  \
+                       uart_irq_pos_pop_action)
+void UART_Handler() {
+    uint16_t sr = UART->SR;
+    uint32_t imr = UART->IMR;
 
-    if (((st & USART_SR_TXE) != 0) && ((cr1 & USART_CR1_TXEIE) != 0))
-	uart_irq_buffer_pop(SD1.tx_buf, USART1->DR);
+    if (((sr & UART_SR_TXRDY) != 0) && ((imr & UART_IMR_TXRDY) != 0))
+	uart_irq_buffer_pop(SD1.tx_buf, UART->THR);
 
-    errorflags = (st & (uint32_t)(USART_SR_PE | USART_SR_FE | USART_SR_ORE | USART_SR_NE));
-    if (!errorflags) {
+    /* If there is no error,  */
+    if (!(sr & (UART_SR_PARE | UART_SR_FRAME | UART_SR_OVRE))) {
 	/* TODO: Decide whether we only handle a received byte if the
 	   interrupt is enabled or not */
-	if (((st & USART_SR_RXNE) != 0) && ((cr1 & USART_CR1_RXNEIE) != 0)) {
+	if (((sr & UART_SR_RXRDY) != 0) &&
+            ((imr & UART_IMR_RXRDY) != 0)) {
 	    uint8_t rv;
-	    uint8_t c = USART1->DR;
+	    uint8_t c = UART->THR;
 	    uart_buffer_push(SD1.rx_buf, c, rv);
-	    if (rv != -1 && SD1.rx_complete_cb && buffer_occupancy(SD1.rx_buf) >= SD1.rx_threshold)
-		reactor_add_handler(SD1.rx_complete_cb, (hcos_word_t) &SD1);
+	    if (rv != -1 && SD1.rx_complete_cb &&
+                buffer_occupancy(SD1.rx_buf) >= SD1.rx_threshold)
+		reactor_add_handler(SD1.rx_complete_cb,
+                                    (hcos_word_t) &SD1);
+	}
+    } else
+        /* TODO: Be more flexible on error handling. For now, just
+           reset the flags */
+        UART->CR = UART_CR_RSTSTA;
+}
+
+#if 0
+void USART0_Handler() {
+    uint16_t sr = USART0->SR;
+    uint32_t imr = USART0->IMR;
+
+    /* gpio_toggle_pin(GPIOB, 27); */
+
+    if (((sr & UART_SR_TXRDY) != 0) && ((imr & UART_IMR_TXRDY) != 0))
+	uart_irq_buffer_pop(SD2.tx_buf, USART0->THR);
+
+    /* If there is no error,  */
+    if (!(sr & (UART_SR_PARE | UART_SR_FRAME | UART_SR_OVRE))) {
+	/* TODO: Decide whether we only handle a received byte if the
+	   interrupt is enabled or not */
+	if (((sr & UART_SR_RXRDY) != 0) &&
+            ((imr & UART_IMR_RXRDY) != 0)) {
+	    uint8_t rv;
+	    uint8_t c = USART0->THR;
+	    uart_buffer_push(SD2.rx_buf, c, rv);
+	    if (rv != -1 && SD2.rx_complete_cb &&
+                buffer_occupancy(SD2.rx_buf) >= SD2.rx_threshold)
+		reactor_add_handler(SD2.rx_complete_cb,
+                                    (hcos_word_t) &SD2);
 	}
     }
 }
+
+void USART1_Handler() {
+    uint16_t sr = USART1->SR;
+    uint32_t imr = USART1->IMR;
+
+    /* gpio_toggle_pin(GPIOB, 27); */
+
+    if (((sr & UART_SR_TXRDY) != 0) && ((imr & UART_IMR_TXRDY) != 0))
+	uart_irq_buffer_pop(SD3.tx_buf, USART1->THR);
+
+    /* If there is no error,  */
+    if (!(sr & (UART_SR_PARE | UART_SR_FRAME | UART_SR_OVRE))) {
+	/* TODO: Decide whether we only handle a received byte if the
+	   interrupt is enabled or not */
+	if (((sr & UART_SR_RXRDY) != 0) &&
+            ((imr & UART_IMR_RXRDY) != 0)) {
+	    uint8_t rv;
+	    uint8_t c = USART1->THR;
+	    uart_buffer_push(SD3.rx_buf, c, rv);
+	    if (rv != -1 && SD3.rx_complete_cb &&
+                buffer_occupancy(SD3.rx_buf) >= SD3.rx_threshold)
+		reactor_add_handler(SD3.rx_complete_cb,
+                                    (hcos_word_t) &SD3);
+	}
+    }
+}
+
+void USART2_Handler() {
+    uint16_t sr = USART2->SR;
+    uint32_t imr = USART2->IMR;
+
+    /* gpio_toggle_pin(GPIOB, 27); */
+
+    if (((sr & UART_SR_TXRDY) != 0) && ((imr & UART_IMR_TXRDY) != 0))
+	uart_irq_buffer_pop(SD4.tx_buf, USART2->THR);
+
+    /* If there is no error,  */
+    if (!(sr & (UART_SR_PARE | UART_SR_FRAME | UART_SR_OVRE))) {
+	/* TODO: Decide whether we only handle a received byte if the
+	   interrupt is enabled or not */
+	if (((sr & UART_SR_RXRDY) != 0) &&
+            ((imr & UART_IMR_RXRDY) != 0)) {
+	    uint8_t rv;
+	    uint8_t c = USART2->THR;
+	    uart_buffer_push(SD4.rx_buf, c, rv);
+	    if (rv != -1 && SD4.rx_complete_cb &&
+                buffer_occupancy(SD4.rx_buf) >= SD4.rx_threshold)
+		reactor_add_handler(SD4.rx_complete_cb,
+                                    (hcos_word_t) &SD4);
+	}
+    }
+}
+
+void USART3_Handler() {
+    uint16_t sr = USART3->SR;
+    uint32_t imr = USART3->IMR;
+
+    /* gpio_toggle_pin(GPIOB, 27); */
+
+    if (((sr & UART_SR_TXRDY) != 0) && ((imr & UART_IMR_TXRDY) != 0))
+	uart_irq_buffer_pop(SD5.tx_buf, USART3->THR);
+
+    /* If there is no error,  */
+    if (!(sr & (UART_SR_PARE | UART_SR_FRAME | UART_SR_OVRE))) {
+	/* TODO: Decide whether we only handle a received byte if the
+	   interrupt is enabled or not */
+	if (((sr & UART_SR_RXRDY) != 0) &&
+            ((imr & UART_IMR_RXRDY) != 0)) {
+	    uint8_t rv;
+	    uint8_t c = USART3->THR;
+	    uart_buffer_push(SD5.rx_buf, c, rv);
+	    if (rv != -1 && SD5.rx_complete_cb &&
+                buffer_occupancy(SD5.rx_buf) >= SD5.rx_threshold)
+		reactor_add_handler(SD5.rx_complete_cb,
+                                    (hcos_word_t) &SD5);
+	}
+    }
+}
+#endif

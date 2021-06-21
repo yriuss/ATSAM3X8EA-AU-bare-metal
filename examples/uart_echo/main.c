@@ -9,11 +9,13 @@
 /*
  * Callback to blink the led to show the app is active
  */
-uint32_t led_state = 1 << 29;
-
 hcos_base_int_t blink_cb(void) {
-    IOPORT3->BSRR = led_state;
-    led_state = __ROR(led_state, 16);
+        gpio_toggle_pin(GPIOB, 27);
+#if 0
+    if (UART->SR & (UART_SR_OVRE)) {
+        UART->CR = UART_CR_RSTSTA;
+    }
+#endif
     return 0;
 }
 
@@ -22,17 +24,17 @@ hcos_base_int_t blink_cb(void) {
  */
 void echo_cb(hcos_word_t arg) {
     uint8_t n = 0;
-    uart_t* drv = (uart_t *) arg;;
+    uart_t* drv = (uart_t *) arg;
     static uint8_t buf[UART_BUFFER_SIZE + 1];
+
+    /* gpio_set_pin(GPIOB, 27); */
 
     n = uart_read(drv, buf, UART_BUFFER_SIZE);
     uart_write(drv, buf, n);
 }
 
 int main(void) {
-    uart_init();
-    
-    uart_config_t cfg = {.baudrate = 500000,
+    uart_config_t cfg = {.baudrate = 115200,
 			 .word_length = 8,
 			 .stop_bits = 1,
 			 .parity = 0,
@@ -44,7 +46,7 @@ int main(void) {
 			 .error_cb = 0
     };
 
-    vt_add_non_rt_handler(blink_cb, 250, 1);
+    vt_add_non_rt_handler(blink_cb, 750, 1);
 
     uart_start(&SD1, &cfg);
     reactor_start();

@@ -2,8 +2,8 @@
 #define HAL_H
 
 #include "gpio.h"
-#if 0
 #include "uart.h"
+#if 0
 #include "dma.h"
 #include "adc.h"
 #include "spi.h"
@@ -11,6 +11,7 @@
 
 #define hal_init() do {				\
         gpio_init();				\
+	uart_init();				\
     } while(0)
 
 #if 0

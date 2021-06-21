@@ -4,9 +4,11 @@
 #include <stdint.h>
 #include "gpio.h"
 #include "buffers.h"
-#include "stm32f103xb.h"
+#include "sam3x8a.h"
 #include "reactor.h"
+#if 0
 #include "dma.h"
+#endif
 
 
 /*
@@ -36,9 +38,9 @@ typedef void (*uart_cb_t)(struct uart_t*);
 
 typedef struct {
     GPIO_TypeDef* port;
-    uint8_t tx_pin;
-    uint8_t rx_pin;
-    uint8_t tx_pin_speed;
+    uint16_t tx_pin;
+    uint16_t rx_pin;
+    uint32_t mode;
 } uart_pindata_t;
 
 typedef struct {
@@ -58,8 +60,8 @@ typedef struct {
 typedef struct {
     uart_buffer_t rx_buf;
     uart_buffer_t tx_buf;
-    USART_TypeDef* dev;
-    uart_pindata_t* pins;
+    UART_TypeDef* dev;
+    uart_pindata_t pins;
     uint32_t last_error_code;
     uint32_t rx_threshold;
 
@@ -82,6 +84,8 @@ typedef struct {
 extern uart_t SD1;
 extern uart_t SD2;
 extern uart_t SD3;
+extern uart_t SD4;
+extern uart_t SD5;
 
 
 /*

@@ -17,6 +17,7 @@
 #define GPIO_SYNC_WRITE  0X08
 #define GPIO_FEATURES_Msk 0x0F
 
+typedef uint16_t gpio_mode_t;
 
 /*
  * Functions
@@ -75,7 +76,7 @@
     ((port)->ODSR ^= ((mask) << (offset)))
 
 void gpio_set_group_mode(GPIO_TypeDef *port, uint32_t bitmask,
-                         int offset, uint32_t mode);
+                         int offset, gpio_mode_t mode);
 
 
 /*
