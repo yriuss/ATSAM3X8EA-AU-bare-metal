@@ -28,9 +28,8 @@ reactor_start(void) {
 
     reactor_on = 1;
     while(reactor_on) {
-        if (head == tail) {
+        if (head == tail)
             continue;
-        }
         cb = queue[2*tail];
         if(!cb) {
             log_warning(1);
@@ -49,7 +48,7 @@ reactor_start(void) {
 
 
 hcos_base_int_t
-reactor_add_handler(reactor_cb_t cb, hcos_word_t data) {
+reactor_add_handlerI(reactor_cb_t cb, hcos_word_t data) {
     hcos_base_int_t rc = 0;
     hcos_base_int_t new_head = head + 1;
     if (new_head >= QUEUE_MAX_SZ)
