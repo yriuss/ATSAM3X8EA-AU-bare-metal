@@ -11,8 +11,8 @@
 extern char _CHECK_SIZE_OF_[1/!(sizeof(hcos_word_t) != sizeof(hcos_ptr_t))];
 
 
-hcos_ptr_t vt_rt_handler_array[VT_RT_HANDLER_ARRAY_MAX];
-hcos_ptr_t vt_non_rt_handler_array[VT_NON_RT_HANDLER_ARRAY_MAX*3];
+volatile hcos_ptr_t vt_rt_handler_array[VT_RT_HANDLER_ARRAY_MAX];
+volatile hcos_ptr_t vt_non_rt_handler_array[VT_NON_RT_HANDLER_ARRAY_MAX*3];
 
 
 void vt_init(void) __attribute ((weak));

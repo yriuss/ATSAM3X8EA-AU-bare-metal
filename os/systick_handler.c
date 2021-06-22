@@ -22,15 +22,13 @@ SysTick_Handler(void)
         if(vt_non_rt_handler_array[i]) {
             if(--vt_non_rt_handler_array[i - VT_NON_RT_HANDLER_ARRAY_MAX])
                 continue;
-            reactor_add_handler(vt_non_rt_handler_array[i], 0);
+            reactor_add_handlerI(vt_non_rt_handler_array[i], 0);
             if(!vt_non_rt_handler_array[i + VT_NON_RT_HANDLER_ARRAY_MAX]) {
-                /* If the handler is a one-shot, kill it right
-                   away */
+                /* If the handler is a one-shot, kill it right away */
                 vt_non_rt_handler_array[i] = 0;
-                vt_non_rt_handler_array[i - VT_NON_RT_HANDLER_ARRAY_MAX] = 0;
             } else
-                /* Otherwise, reloads it with the appropriate
-                   timeout value */
+                /* Otherwise, reloads it with the appropriate timeout
+                   value */
                 vt_non_rt_handler_array[i - VT_NON_RT_HANDLER_ARRAY_MAX] =
                     vt_non_rt_handler_array[i + VT_NON_RT_HANDLER_ARRAY_MAX];
         }
