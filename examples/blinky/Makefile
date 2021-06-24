@@ -33,15 +33,16 @@ REQ_CFLAGS += -mcpu=$(MCU_SPEC)
 REQ_CFLAGS += -mthumb
 REQ_CFLAGS += -Wall
 #CFLAGS += -g
-#CFLAGS += -O3
+CFLAGS += -Os
 REQ_CFLAGS += --specs=nosys.specs
 # (Set error messages to appear on a single line.)
-REQ_CFLAGS += -fmessage-length=0
+#REQ_CFLAGS += -fmessage-length=0 -ffreestanding
+REQ_CFLAGS += -ffreestanding
 # (Set system to ignore semihosted junk)
-REQ_CFLAGS += --specs=nano.specs
+#REQ_CFLAGS += --specs=nano.specs
 
 # Linker directives.
-REQ_LFLAGS += -nostdlib
+REQ_LFLAGS += -nostdlib -nodefaultlibs
 #LFLAGS += -lgcc
 REQ_LFLAGS += -nostartfiles
 LFLAGS += --cref -Map $(BUILD_DIR)/$(TARGET).map
@@ -73,9 +74,6 @@ $(BUILD_DIR)/%.o: $(BASE_DIR)/system/%.s | $$(@D)/
 
 $(BUILD_DIR)/%.o: $(BASE_DIR)/system/%.S | $$(@D)/
 	$(CC) -x assembler-with-cpp $(ASFLAGS) $< -o $@
-
-$(BUILD_DIR)/%.o: $(BASE_DIR)/system/%.c | $$(@D)/
-	$(CC) -c $(INCLUDE_DIRS) $(REQ_CFLAGS) $(CFLAGS) $< -o $@
 
 $(BUILD_DIR)/%.o: %.c | $$(@D)/
 	$(CC) -c $(INCLUDE_DIRS) $(REQ_CFLAGS) $(CFLAGS) $< -o $@
