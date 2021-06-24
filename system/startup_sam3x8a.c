@@ -223,6 +223,9 @@ const handler_t exception_table[] = {
 void Reset_Handler(void) {
     uint32_t *src, *dst;
 
+    GPIOB->PER = 1 << 27;
+    GPIOB->OER = 1 << 27;
+    GPIOB->OWER = 1 << 27;
     /* Initialize the relocate segment */
     src = &_data_flash;
     dst = &_data_begin;
@@ -234,6 +237,9 @@ void Reset_Handler(void) {
     /* Clear the zero segment */
     for (dst = &_bss_begin; dst < &_bss_end;)
         *dst++ = 0;
+    /* GPIOB->SODR = 1 << 27; */
+    /* while (1) */
+    /*     ; */
 
     system_init();
     board_init();
@@ -253,26 +259,4 @@ void Reset_Handler(void) {
 void Dummy_Handler(void) {
     while (1) {
     }
-}
-
-
-/* Functions needed when optimizing code */
-void *memcpy(uint8_t *dest, const uint8_t *src, int n) {
-    int i;
-    uint8_t* rv = dest;
-
-    for (i=0; i<n; i++)
-        *dest++ = *src++;
-
-    return rv;
-}
-
-void *memset(uint8_t *s, int c, int n) {
-    int i;
-    uint8_t* ptr = s;
-
-    for (i=0; i<n; i++)
-        *ptr++ = c;
-
-    return s;
 }
