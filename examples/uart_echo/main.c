@@ -9,14 +9,8 @@
 /*
  * Callback to blink the led to show the app is active
  */
-hcos_base_int_t blink_cb(void) {
-        gpio_toggle_pin(GPIOB, 27);
-#if 0
-    if (UART->SR & (UART_SR_OVRE)) {
-        UART->CR = UART_CR_RSTSTA;
-    }
-#endif
-    return 0;
+void blink_cb(hcos_word_t arg) {
+    gpio_toggle_pin(GPIOB, 27);
 }
 
 /*
@@ -27,14 +21,19 @@ void echo_cb(hcos_word_t arg) {
     uart_t* drv = (uart_t *) arg;
     static uint8_t buf[UART_BUFFER_SIZE + 1];
 
-    /* gpio_set_pin(GPIOB, 27); */
-
     n = uart_read(drv, buf, UART_BUFFER_SIZE);
     uart_write(drv, buf, n);
 }
 
+void error_cb(hcos_word_t arg) {
+    uart_t* drv = (uart_t *) arg;
+    const uint8_t buf[] = "ERROR!";
+
+    uart_write(drv, buf, sizeof(buf));
+}
+
 int main(void) {
-    uart_config_t cfg = {.baudrate = 115200,
+    uart_config_t cfg = {.baudrate = 200000,
 			 .word_length = 8,
 			 .stop_bits = 1,
 			 .parity = 0,
@@ -43,7 +42,7 @@ int main(void) {
 			 .rx_threshold = UART_BUFFER_SIZE/2, /* Threshold to call the rx callback */
 			 .rx_complete_cb = echo_cb,
 			 .tx_complete_cb = 0,
-			 .error_cb = 0
+			 .error_cb = error_cb
     };
 
     vt_add_non_rt_handler(blink_cb, 750, 1);

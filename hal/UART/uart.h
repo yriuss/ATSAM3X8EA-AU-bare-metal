@@ -64,6 +64,7 @@ typedef struct {
     uart_pindata_t pins;
     uint32_t last_error_code;
     uint32_t rx_threshold;
+    uint32_t already_signalled;
 
 #if UART_USE_DMA == 1
     uint8_t dma_rx_channel;

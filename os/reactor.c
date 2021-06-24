@@ -1,6 +1,5 @@
 #include "reactor.h"
 #include "hcos_asm_impl.h"
-#include "gpio.h"
 
 
 extern char _CHECK_SIZE_OF_[1/!(sizeof(hcos_word_t) != sizeof(hcos_ptr_t))];
