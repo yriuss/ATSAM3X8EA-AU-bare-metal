@@ -3,15 +3,16 @@
 
 #include "gpio.h"
 #include "uart.h"
+#include "adc.h"
 #if 0
 #include "dma.h"
-#include "adc.h"
 #include "spi.h"
 #endif
 
 #define hal_init() do {				\
         gpio_init();				\
 	uart_init();				\
+        adc_init();                             \
     } while(0)
 
 #if 0
@@ -19,7 +20,6 @@
         gpio_init();				\
 	uart_init();				\
 	dma_init();				\
-        adc_init();                 \
         spi_init();                 \
     } while(0)
 #endif

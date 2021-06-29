@@ -1,32 +1,64 @@
 #include <stdint.h>
-#include "stm32f103xb.h"
+#include "sam3x8a.h"
 #include "adc.h"
-#include "rcc.h"
+#include "pmc.h"
 #include "reactor.h"
+#if 0
 #include "dma.h"
+#endif
 
 adc_t ADCD1;
 
-static void _adc_config_sample_rates(adc_t *drv, adc_config_sr_t *sr);
-static void _adc_config_group_pins(adc_t *drv, adc_group_t *group);
-
 void adc_init(void) {
-    ADCD1.dev = ADC1;
+    ADCD1.dev = ADC;
+    ADCD1.samples = 0;
+    ADCD1.buflen = 0;
+    ADCD1.group_conv_cb = 0;
 
 #if ADC_USE_DMA == 1
     ADCD1.dma_channel = DMA_ADC1_CHANNEL;
 #endif /* ADC_USE_DMA */
 }
 
+#if 0
 int adc_start(adc_t *drv, adc_config_t *config) {
-#if ADC_USE_DMA != 1
-    /* If we are scanning more than one channel, we must use DMA */
-    if (config->group->len > 1)
-        return -1;
-#endif /* ADC_USE_DMA */
+    int i;
+    int lim;
+    int ch;
+    uint32_t seqr = 0;
+    uint32_t cher = 0;
 
-    (config->align == ADC_RIGHT) ? ADC_CONV_RIGHT_ALIGN(ADC1) : ADC_CONV_LEFT_ALIGN(ADC1);
-    /* drv->trigger = 0;       //TODO: add support to trigger config */
+    /* Reset the ADC to start from zero */
+    drv->dev->CR = ADC_CR_SWRST;
+
+    /* TODO: add support to trigger config */
+    drv->dev->MR = (config->freerun_mode ? ADC_MR_FREERUN : 0) |
+        (config->lowres_mode ? ADC_MR_LOWRES: 0) |
+        (config->different_chann ? ADC_MR_ANACH : 0) |
+        (config->group.seq_order ? ADC_MR_USEQ : 0) |
+        code_adc_mr_settling(config->settling) |
+        code_adc_mr_tracking(config->tracking) |
+        code_adc_mr_transfer(config->transfer) |
+        code_adc_mr_prescaler(config->prescaler) |
+        code_adc_mr_startup(config->startup);
+
+    drv->dev->ACR = (config->temp_on ? ADC_ACR_TSON : 0);
+
+    drv->dev->SEQR1 = drv->dev->SEQR2 = 0;
+    drv->dev->CHDR = 0xFF; /* Disable all channels */
+    config.group.len = config.group.len > 16 ? 16 : config.group.len;
+    lim = config.group.len > 8 ? 8 : config.group.len;
+    for (i=seqr=ch=0; i<lim; i++) {
+        seqr |= ((config.group.ch[i] & 0xF) << (i << 2));
+        cher |= (1 << i);
+    }
+    drv->dev->SEQR1 = seqr;
+    for (i=seqr=lim; i<config.group.len; i++) {
+        seqr |= ((config.group.ch[i] & 0xF) << ((i - lim) << 2));
+        cher |= (1 << i);
+    }        
+    drv->dev->SEQR2 = seqr;
+    drv->dev->CHER  = cher;
 
     drv->group_conv_cb = config->group_conv_cb;
     drv->eoc_injected_cb = config->eoc_injected_cb;
@@ -37,23 +69,9 @@ int adc_start(adc_t *drv, adc_config_t *config) {
 #endif
 
     drv->samples = 0;
+    drv->buflen = 0;
 
-    RCC_ADC1_CLK_ENABLE();                      /* Enable ADC1 RCC */
-    drv->dev->CR2 |= ADC_CR2_ADON;
-    /* Wait two ADC clock cycles before starting calibration. Assumes
-       12 MHz ADC clock */
-    __NOP(); __NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-    __NOP(); __NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-
-    drv->dev->CR2 |= ADC_CR2_CAL;
-    while(drv->dev->CR2 & ADC_CR2_CAL)
-	;             /* Wait for ADC1 calibration to finish */
-
-    /* Configure group pins and conversion channels */
-    _adc_config_group_pins(drv, config->group);
-    _adc_config_sample_rates(drv, config->sr);
-    
-    drv->dev->CR2 |= (config->mode == SINGLE ? 0 : ADC_CR2_CONT);
+    PMC_ADC_CLK_ENABLE();
 
 #if ADC_USE_DMA == 1
     dma_start(&DMAD1);
@@ -64,7 +82,7 @@ int adc_start(adc_t *drv, adc_config_t *config) {
 
 #if ADC_USE_DMA == 1
 void adc_full_transfer_cb(hcos_word_t arg) {
-    
+
 }
 #endif
 
@@ -102,17 +120,21 @@ int adc_start_conversion(adc_t* drv, uint16_t* buf, uint16_t n) {
 #else  /* ADC_USE_DMA == FALSE */
     drv->samples = buf;
     drv->length = n;
-    adc_enable_EOC_irq(ADC1);
+    drv->dev->IDR = 0xFFFFFFFF;
+    drv->dev->IER = ADC_IER_DRDY;
 #endif  /* ADC_USE_DMA */
 
-    drv->dev->CR2 |= ADC_CR2_ADON;
+    drv->dev->CR |= ADC_CR_START;
 
     return 0;
 }
 
 int adc_stop_conversion(adc_t *drv) {
-    drv->dev->CR2 &= ~(ADC_CR2_CONT);   // Stop ADC
-    drv->dev->CR1 &= ~ADC_CR1_EOCIE;
+#if ADC_USE_DMA != 1
+    drv->dev->IDR = 0xFFFFFFFF;
+#endif
+    drv->dev->CHDR = 0xFFFF;
+    drv->dev->MR &= ~(ADC_MR_FREERUN);   // Stop ADC
 
     /* TODO:  Check the best value to return */
     /* return drv->dev->SR & ? 1 : 0; */
@@ -121,106 +143,12 @@ int adc_stop_conversion(adc_t *drv) {
 
 int adc_stop(adc_t *drv) {
     adc_stop_conversion(drv);
-    drv->dev->CR2 &= ~(ADC_CR2_ADON);   // Stop ADC
-    RCC_ADC1_CLK_DISABLE();             /* Enable ADC1 RCC */
+    PMC_ADC_CLK_DISABLE();
 
     return 0;
 }
 
-static void _adc_config_sample_rate(volatile uint32_t *reg, int n, adc_config_sr_t sr) {
-    uint32_t mask;
-    n *= 3;
-    mask = 0x07 << n;
-    *reg = (*reg & ~mask) | ((sr << n) & mask);
-}
-
-void adc_config_sample_rate(adc_t *drv, int n, adc_config_sr_t sr) {
-    if (n < 10)
-        _adc_config_sample_rate(&drv->dev->SMPR1, n, sr);
-    else
-        _adc_config_sample_rate(&drv->dev->SMPR2, n - 10, sr);
-}
-
-static void _adc_config_sample_rates(adc_t *drv, adc_config_sr_t *sr) {
-    int i;
-
-    for (i=0; i<10; i++)
-        _adc_config_sample_rate(&drv->dev->SMPR1, i, sr[i]);
-
-    for (; i<NBR_ADC_CHANNELS; i++)
-        _adc_config_sample_rate(&drv->dev->SMPR2, i - 10, sr[i]);
-}
-
-static void _adc_config_group_pins(adc_t *drv, adc_group_t *group) {
-    ADC_GRP_NUM_OF_CONV(ADC1, group->len);
-    if (group->len >= 1) {
-        adc_set_gpio(group->ch[0]);
-        ADC_GRP_1ST_CONV_CHAN(ADC1, group->ch[0]);
-    }
-    if (group->len >= 2) {
-        adc_set_gpio(group->ch[1]);
-        ADC_GRP_2ND_CONV_CHAN(ADC1, group->ch[1]);
-    }
-    if (group->len >= 3) {
-        adc_set_gpio(group->ch[2]);
-        ADC_GRP_3RD_CONV_CHAN(ADC1, group->ch[2]);
-    }
-    if (group->len >= 4) {
-        adc_set_gpio(group->ch[3]);
-        ADC_GRP_4TH_CONV_CHAN(ADC1, group->ch[3]);
-    }
-    if (group->len >= 5) {
-        adc_set_gpio(group->ch[4]);
-        ADC_GRP_5TH_CONV_CHAN(ADC1, group->ch[4]);
-    }
-    if (group->len >= 6) {
-        adc_set_gpio(group->ch[5]);
-        ADC_GRP_6TH_CONV_CHAN(ADC1, group->ch[5]);
-    }
-    if (group->len >= 7) {
-        adc_set_gpio(group->ch[6]);
-        ADC_GRP_7TH_CONV_CHAN(ADC1, group->ch[6]);
-    }
-    if (group->len >= 8) {
-        adc_set_gpio(group->ch[7]);
-        ADC_GRP_8TH_CONV_CHAN(ADC1, group->ch[7]);
-    }
-    if (group->len >= 9) {
-        adc_set_gpio(group->ch[8]);
-        ADC_GRP_9TH_CONV_CHAN(ADC1, group->ch[8]);
-    }
-    if (group->len >= 10) {
-        adc_set_gpio(group->ch[9]);
-        ADC_GRP_10TH_CONV_CHAN(ADC1, group->ch[9]);
-    }
-    if (group->len >= 11) {
-        adc_set_gpio(group->ch[10]);
-        ADC_GRP_11TH_CONV_CHAN(ADC1, group->ch[10]);
-    }
-    if (group->len >= 12) {
-        adc_set_gpio(group->ch[11]);
-        ADC_GRP_12TH_CONV_CHAN(ADC1, group->ch[11]);
-    }
-    if (group->len >= 13) {
-        adc_set_gpio(group->ch[12]);
-        ADC_GRP_13TH_CONV_CHAN(ADC1, group->ch[12]);
-    }
-    if (group->len >= 14) {
-        adc_set_gpio(group->ch[13]);
-        ADC_GRP_14TH_CONV_CHAN(ADC1, group->ch[13]);
-    }
-    if (group->len >= 15) {
-        adc_set_gpio(group->ch[14]);
-        ADC_GRP_15TH_CONV_CHAN(ADC1, group->ch[14]);
-    }
-    if (group->len >= 16) {
-        adc_set_gpio(group->ch[15]);
-        ADC_GRP_16TH_CONV_CHAN(ADC1, group->ch[15]);
-    }
-}
-
-#if 0
-void ADC1_2_IRQHandler(void) {
+void ADC_Handler(void) {
     static uint8_t conv_count = 0;
 
     if(ADC_EVT_EOC(ADC1)) {

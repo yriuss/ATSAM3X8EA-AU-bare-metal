@@ -139,7 +139,9 @@ typedef enum {
     _IRQn                   = 34,
     _IRQn                   = 35,
     _IRQn                   = 36,
-    _IRQn                   = 37,
+#endif
+    ADC_IRQn                = 37,
+#if 0
     _IRQn                   = 38,
     _IRQn                   = 39,
     _IRQn                   = 40,
@@ -284,6 +286,37 @@ typedef struct {
     RwReg BRGR;
 } UART_TypeDef;
 
+typedef struct {
+    WoReg CR;
+    RwReg MR;
+    RwReg SEQR1;
+    RwReg SEQR2;
+    WoReg CHER;
+    WoReg CHDR;
+    RoReg CHSR;
+    RoReg Reserved1;
+    RoReg LCDR;
+    WoReg IER;
+    WoReg IDR;
+    RoReg IMR;
+    RoReg ISR;
+    RoReg Reserved2;
+    RoReg Reserved3;
+    RoReg OVER;
+    RwReg EMR;
+    RwReg CWR;
+    RwReg CGR;
+    RwReg COR;
+    RoReg CDR[16];
+    RoReg Reserved4;
+    RwReg ACR;
+    RoReg Reserved5[11];
+    RoReg Reserved6[8];
+    RwReg WPMR;
+    RoReg WPSR;
+} ADC_TypeDef;
+
+
 /* */
 #define PMC   ((Pmc_TypeDef *)0x400E0600U) /**< \brief (PMC       ) Base Address */
 #define EFC0  ((Efc_TypeDef *)0x400E0A00U) /**< \brief (EFC0      ) Base Address */
@@ -300,6 +333,7 @@ typedef struct {
 #define USART1 ((UART_TypeDef *) 0x4009C000U)
 #define USART2 ((UART_TypeDef *) 0x400A0000U)
 #define USART3 ((UART_TypeDef *) 0x400A4000U)
+#define ADC    ((ADC_TypeDef *)  0x400C0000U)
 
 
 #define EEFC_FMR_FWS_Pos 8
@@ -340,8 +374,7 @@ typedef struct {
 #define PMC_PCER0_PIOB   (1U << PIOB_IRQn)
 #define PMC_PCER0_PIOC   (1U << PIOC_IRQn)
 #define PMC_PCER0_PIOD   (1U << PIOD_IRQn)
-#define PMC_PCER0_PIOE   (1U << PIOE_IRQn)
-#define PMC_PCER0_PIOF   (1U << PIOF_IRQn)
+#define PMC_PCER1_ADC    (1U << (ADC_IRQn - 32))
 
 #define CKGR_PLLAR_ONE (0x1u << 29)
 
@@ -465,43 +498,123 @@ typedef struct {
 #define UART_SR_TXBUFE   UART_IMR_TXBUFE
 #define UART_SR_RXBUFF   UART_IMR_RXBUFF
 
+#define ADC_CR_SWRST_Pos  0   
+#define ADC_CR_SWRST      (1 << ADC_CR_SWRST_Pos)
+#define ADC_CR_START_Pos  1   
+#define ADC_CR_START      (1 << ADC_CR_START_Pos)
+#define ADC_MR_TRGEN_Pos  0
+#define ADC_MR_TRGEN      (1 << ADC_MR_TRGEN_Pos)
+#define ADC_MR_TRGSEL_Pos 1
+#define ADC_MR_TRGSEL_Msk (0x7 << ADC_MR_TRGSEL_Pos)
+#define ADC_MR_TRGSEL_TRIG0 (0x0 << ADC_MR_TRGSEL_Pos)
+#define ADC_MR_TRGSEL_TRIG1 (0x1 << ADC_MR_TRGSEL_Pos)
+#define ADC_MR_TRGSEL_TRIG2 (0x2 << ADC_MR_TRGSEL_Pos)
+#define ADC_MR_TRGSEL_TRIG3 (0x3 << ADC_MR_TRGSEL_Pos)
+#define ADC_MR_TRGSEL_TRIG4 (0x4 << ADC_MR_TRGSEL_Pos)
+#define ADC_MR_TRGSEL_TRIG5 (0x5 << ADC_MR_TRGSEL_Pos)
+#define ADC_MR_TRGSEL_ADCTRG ADC_MR_TRGSEL_TRIG0
+#define ADC_MR_TRGSEL_TIOA0  ADC_MR_TRGSEL_TRIG1
+#define ADC_MR_TRGSEL_TIOA1  ADC_MR_TRGSEL_TRIG2
+#define ADC_MR_TRGSEL_TIOA2  ADC_MR_TRGSEL_TRIG3
+#define ADC_MR_TRGSEL_PWM0   ADC_MR_TRGSEL_TRIG4
+#define ADC_MR_TRGSEL_PWM1   ADC_MR_TRGSEL_TRIG5
+#define ADC_MR_LOWRES_Pos 4
+#define ADC_MR_LOWRES     (1 << ADC_MR_LOWRES_Pos)
+#define ADC_MR_SLEEP_Pos  5
+#define ADC_MR_SLEEP      (1 << ADC_MR_SLEEP_Pos)
+#define ADC_MR_FWUP_Pos   6
+#define ADC_MR_FWUP       (1 << ADC_MR_FWUP_Pos)
+#define ADC_MR_FREERUN_Pos 7
+#define ADC_MR_FREERUN     (1 << ADC_MR_FREERUN_Pos)
+#define ADC_MR_PRESCAL_Pos 8
+#define ADC_MR_PRESCAL_Msk (0xFF << ADC_MR_PRESCAL_Pos)
+#define ADC_MR_STARTUP_Pos 16
+#define ADC_MR_STARTUP_Msk (0xF << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT0 (0x0 << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT8 (0x1 << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT16 (0x2 << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT24 (0x3 << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT64 (0x4 << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT80 (0x5 << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT96 (0x6 << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT112 (0x7 << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT512 (0x8 << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT576 (0x9 << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT640 (0xA << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT704 (0xB << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT768 (0xC << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT832 (0xD << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT896 (0xE << ADC_MR_STARTUP_Pos)
+#define ADC_MR_STARTUP_SUT960 (0xF << ADC_MR_STARTUP_Pos)
+#define ADC_MR_SETTLING_Pos 20
+#define ADC_MR_SETTLING_Msk (0x3 << ADC_MR_SETTLING_Pos)
+#define ADC_MR_SETTLING_AST3 (0x0 << ADC_MR_SETTLING_Pos)
+#define ADC_MR_SETTLING_AST5 (0x1 << ADC_MR_SETTLING_Pos)
+#define ADC_MR_SETTLING_AST9 (0x2 << ADC_MR_SETTLING_Pos)
+#define ADC_MR_SETTLING_AST17 (0x3 << ADC_MR_SETTLING_Pos)
+#define ADC_MR_ANACH_Pos  23
+#define ADC_MR_ANACH      (1 << ADC_MR_ANACH_Pos)
+#define ADC_MR_TRACKTIM_Pos 24
+#define ADC_MR_TRACKTIM_Msk (0x7 << ADC_MR_TRACKTIM_Pos)
+#define ADC_MR_TRANSFER_Pos 28
+#define ADC_MR_TRANSFER_Msk (0x7 << ADC_MR_TRANSFER_Pos)
+#define ADC_MR_USEQ_Pos    31
+#define ADC_MR_USEQ        (1 << ADC_MR_USEQ_Pos)
+#define ADC_SEQR_USCH_Msk  0xF
+#define ADC_LCDR_LDATA_Pos 0
+#define ADC_LCDR_LDATA_Msk (0xFFF << ADC_LCDR_LDATA_Pos)
+#define ADC_LCDR_CHNB_Pos  12
+#define ADC_LCDR_CHNB_Msk  (0xF << ADC_LCDR_CHNB_Pos)
+#define ADC_IER_DRDY_Pos   24
+#define ADC_IER_DRDY       (1 << ADC_IER_DRDY_Pos)
+#define ADC_IER_GOVRE_Pos  25
+#define ADC_IER_GOVRE      (1 << ADC_IER_GOVRE_Pos)
+#define ADC_IER_COMPE_Pos  26
+#define ADC_IER_COMPE      (1 << ADC_IER_COMPE_Pos)
+#define ADC_IER_ENDRX_Pos  27
+#define ADC_IER_ENDRX      (1 << ADC_IER_ENDRX_Pos)
+#define ADC_IER_RXBUF_Pos  28
+#define ADC_IER_RXBUF      (1 << ADC_IER_RXBUF_Pos)
+#define ADC_IDR_DRDY       ADC_IER_DRDY
+#define ADC_IDR_GOVRE      ADC_IER_GOVRE
+#define ADC_IDR_COMPE      ADC_IER_COMPE
+#define ADC_IDR_ENDRX      ADC_IER_ENDRX
+#define ADC_IDR_RXBUF      ADC_IER_RXBUF
+#define ADC_IMR_DRDY       ADC_IER_DRDY
+#define ADC_IMR_GOVRE      ADC_IER_GOVRE
+#define ADC_IMR_COMPE      ADC_IER_COMPE
+#define ADC_IMR_ENDRX      ADC_IER_ENDRX
+#define ADC_IMR_RXBUF      ADC_IER_RXBUF
+#define ADC_ISR_DRDY       ADC_IER_DRDY
+#define ADC_ISR_GOVRE      ADC_IER_GOVRE
+#define ADC_ISR_COMPE      ADC_IER_COMPE
+#define ADC_ISR_ENDRX      ADC_IER_ENDRX
+#define ADC_ISR_RXBUF      ADC_IER_RXBUF
+/* TODO: the constants related to the registers EMR, CGR, WPMR and
+   WPSR below still need to be defined */
+#define ADC_EMR__Pos 24
+#define ADC_EMR__Msk (0x7 << ADC_MR__Pos)
+/* End of TODO */
+#define ADC_CDR_DATA_Pos  0
+#define ADC_CDR_DATA_Msk  (0xFFF << ADC_CDR_DATA_Pos)
+#define ADC_ACR_TSON_Pos  4
+#define ADC_ACR_TSON      (1 << ADC_ACR_TSON_Pos)
+#define ADC_ACR_IBCTL_Pos 8
+#define ADC_ACR_IBCTL_Msk (0x3 << ADC_ACR_IBCTL_Pos)
+
+#define code_adc_mr_settling(n) (((n) << ADC_MR_SETTLING_Pos) & \
+                                 ADC_MR_SETTLING_Msk)
+#define code_adc_mr_tracking(n) (((n) << ADC_MR_TRACKTIM_Pos) & \
+                                 ADC_MR_TRACKTIM_Msk)
+#define code_adc_mr_transfer(n) (((n) << ADC_MR_TRANSFER_Pos) & \
+                                 ADC_MR_TRANSFER_Msk)
+#define code_adc_mr_startup(n)  (((n) << ADC_MR_STARTUP_Pos) &  \
+                                 ADC_MR_STARTUP_Msk)
+#define code_adc_mr_prescaler(n) (((n) << ADC_MR_PRESCAL_Pos) & \
+                                  ADC_MR_PRESCAL_Msk)
+
 
 #if 0
-    /**
-     * @brief Analog to Digital Converter
-     */
-
-typedef struct {
-    uint32_t SR;
-    uint32_t CR1;
-    uint32_t CR2;
-    uint32_t SMPR1;
-    uint32_t SMPR2;
-    uint32_t JOFR1;
-    uint32_t JOFR2;
-    uint32_t JOFR3;
-    uint32_t JOFR4;
-    uint32_t HTR;
-    uint32_t LTR;
-    uint32_t SQR1;
-    uint32_t SQR2;
-    uint32_t SQR3;
-    uint32_t JSQR;
-    uint32_t JDR1;
-    uint32_t JDR2;
-    uint32_t JDR3;
-    uint32_t JDR4;
-    uint32_t DR;
-} ADC_TypeDef;
-
-typedef struct {
-    uint32_t SR;               /*!< ADC status register,    used for ADC multimode (bits common to several ADC instances). Address offset: ADC1 base address         */
-    uint32_t CR1;              /*!< ADC control register 1, used for ADC multimode (bits common to several ADC instances). Address offset: ADC1 base address + 0x04  */
-    uint32_t CR2;              /*!< ADC control register 2, used for ADC multimode (bits common to several ADC instances). Address offset: ADC1 base address + 0x08  */
-    uint32_t  RESERVED[16];
-    uint32_t DR;               /*!< ADC data register,      used for ADC multimode (bits common to several ADC instances). Address offset: ADC1 base address + 0x4C  */
-} ADC_Common_TypeDef;
-
     /**
      * @brief DMA Controller
      */

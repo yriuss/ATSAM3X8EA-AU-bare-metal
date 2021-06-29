@@ -44,14 +44,6 @@
 	(void)tmpreg;						\
     } while(0U)
 
-#define PMC_ADC1_CLK_ENABLE()   do {				\
-	__IO uint32_t tmpreg;					\
-	PMC->APB2ENR |= PMC_APB2ENR_ADC1EN;			\
-	/* Delay after an PMC peripheral clock enabling */	\
-	tmpreg = PMC->APB2ENR & PMC_APB2ENR_ADC1EN;		\
-	(void)tmpreg;						\
-    } while(0U)
-
 #define PMC_TIM1_CLK_ENABLE()   do {				\
 	__IO uint32_t tmpreg;					\
 	PMC->APB2ENR |= PMC_APB2ENR_TIM1EN;			\
@@ -94,6 +86,8 @@
 #define PMC_GPIOB_CLK_ENABLE()   (PMC->PMC_PCER0 = PMC_PCER0_PIOB)
 #define PMC_GPIOC_CLK_ENABLE()   (PMC->PMC_PCER0 = PMC_PCER0_PIOC)
 #define PMC_GPIOD_CLK_ENABLE()   (PMC->PMC_PCER0 = PMC_PCER0_PIOD)
+#define PMC_ADC_CLK_ENABLE()     (PMC->PMC_PCER1 = PMC_PCER1_ADC)
+
 
 #if 0
 #define PMC_WWDG_CLK_ENABLE()   do {				\
@@ -174,12 +168,12 @@
 #define PMC_GPIOB_CLK_DISABLE()  (PMC->PMC_PCDR0 = PMC_PCER0_PIOB)
 #define PMC_GPIOC_CLK_DISABLE()  (PMC->PMC_PCDR0 = PMC_PCER0_PIOC)
 #define PMC_GPIOD_CLK_DISABLE()  (PMC->PMC_PCDR0 = PMC_PCER0_PIOD)
+#define PMC_ADC_CLK_DISABLE()    (PMC->PMC_PCDR0 = PMC_PCER0_ADC)
 
 #if 0
 #define PMC_I2C1_CLK_DISABLE()      (PMC->APB1ENR &= ~(PMC_APB1ENR_I2C1EN))
 #define PMC_WWDG_CLK_DISABLE()      (PMC->APB1ENR &= ~(PMC_APB1ENR_WWDGEN))
 #define PMC_AFIO_CLK_DISABLE()      (PMC->APB2ENR &= ~(PMC_APB2ENR_AFIOEN))
-#define PMC_ADC1_CLK_DISABLE()      (PMC->APB2ENR &= ~(PMC_APB2ENR_ADC1EN))
 
 #define PMC_TIM4_CLK_DISABLE()        (PMC->APB1ENR &= ~(PMC_APB1ENR_TIM4EN))
 #define PMC_SPI2_CLK_DISABLE()        (PMC->APB1ENR &= ~(PMC_APB1ENR_SPI2EN))
