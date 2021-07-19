@@ -18,7 +18,9 @@ void blink_cb(hcos_word_t arg) {
 uint16_t adc_buffer[ADC_BUFFER_SIZE];
 
 int main(void) {
-    uart_config_t uart_cfg = {.baudrate = 500000,
+    gpio_set_pin_mode(GPIOB, 27, GPIO_OUTPUT_MODE | GPIO_SYNC_WRITE);
+    //gpio_set_pin_mode(GPIOA, 3, GPIO_INPUT_MODE);
+    uart_config_t uart_cfg = {.baudrate = 115200,
 			      .word_length = 8,
 			      .stop_bits = 1,
 			      .parity = 0,
@@ -30,6 +32,22 @@ int main(void) {
 			      .error_cb = 0
     };
 
+    uint16_t prescaler = code_adc_mr_prescaler(200), startup = code_adc_mr_startup(1);
+    uint8_t settling = code_adc_mr_settling(0);
+    uint8_t tracking = code_adc_mr_tracking(0);
+    uint8_t transfer =  code_adc_mr_transfer(0);
+
+    adc_config_t adc_cfg = {
+        .freerun_mode = ADC_MR_FREERUN,
+        .trigger = 0,
+        .lowres_mode = 0,
+        .prescaler = prescaler,
+        .startup = startup,
+        .settling = settling,
+        .tracking = tracking,
+        .transfer = transfer,
+        .different_chann = 0
+    };
 #if 0
     adc_group_t adc_groups_config =
         {.group = {.ch = {1, 0, 0, 0, 0, 0, 0, 0,
@@ -50,30 +68,28 @@ int main(void) {
 #endif
 
 #include "pmc.h"
-#define MAX_TICKS 500000
-    vt_add_non_rt_handler(blink_cb, 250, 1);
+#define MAX_TICKS 1000000
+    //vt_add_non_rt_handler(blink_cb, 250, 1);
+    adc_t adc;
 
     uart_start(&SD1, &uart_cfg);
-
-    ADC->CR = ADC_CR_SWRST;
-    ADC->MR = ADC_MR_FREERUN | code_adc_mr_settling(0) |
-        code_adc_mr_tracking(3) | code_adc_mr_transfer(2) |
-        code_adc_mr_prescaler(255) | code_adc_mr_startup(1);
-    ADC->CHER = 0x2;
-    /* ADC->IER = ADC_IER_DRDY; */
-
-
-    NVIC_EnableIRQ(ADC_IRQn);
-    NVIC_SetPriority(ADC_IRQn, 3);
-    PMC_ADC_CLK_ENABLE();
-    ADC->CR = ADC_CR_START;
-
+    adc_start(&adc ,&adc_cfg);
+    int ctr = MAX_TICKS;
+    uint16_t data = 0;
     while (1) {
-        while (!ADC->ISR & ADC_ISR_DRDY)
-            ;
-        data = ADC->LCDR & 0xFFF;
-        uart_putc(&SD1, data & 0xFF);
-        uart_putc(&SD1, (data >> 8) & 0xF);
+        if(--ctr == 0){
+            ctr = MAX_TICKS;
+        }
+        
+        if ((ctr == MAX_TICKS) && (ADC->ISR & ADC_ISR_DRDY)){
+                gpio_toggle_pin(GPIOB, 27);
+                data = ADC->LCDR & 0xFFF;
+                uart_putc(&SD1, data & 0xFF);
+                uart_putc(&SD1, (data >> 8) & 0xF);
+            }
+        if(data == 4095 && ctr == MAX_TICKS){
+            
+        }
     }
 
     /* adc_start(&ADCD1, &adc_cfg); */
@@ -91,7 +107,7 @@ int main(void) {
 #define BUF_SZ_MSK (BUF_SZ - 1)
 #define BUF_MIDPOINT_MSK (BUF_SZ/2 - 1)
 
-#define MAX 2
+#define MAX 10000
 void send_fun(hcos_word_t arg) {
     uint8_t *buf = (uint8_t *) arg;
     static int ctr = 0;
