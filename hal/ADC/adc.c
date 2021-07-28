@@ -3,6 +3,20 @@
 #include "adc.h"
 #include "pmc.h"
 #include "reactor.h"
+
+
+#define BUF_SZ_LOG 5
+#define BUF_SZ (1U << BUF_SZ_LOG)
+#define BUF_SZ_MSK (BUF_SZ - 1)
+#define BUF_MIDPOINT_MSK (BUF_SZ/2 - 1)
+
+
+#define testing 1
+
+#if testing
+#include "uart.h"
+
+#define MAX 1
 #if 0
 #include "dma.h"
 #endif
@@ -11,13 +25,71 @@ adc_t ADCD1;
 
 void adc_init(void) {
     ADCD1.dev = ADC;
-    ADCD1.samples = 0;
     ADCD1.buflen = 0;
     ADCD1.group_conv_cb = 0;
 
 #if ADC_USE_DMA == 1
     ADCD1.dma_channel = DMA_ADC1_CHANNEL;
 #endif /* ADC_USE_DMA */
+}
+
+
+void send_fun(hcos_word_t arg) {
+    
+    uint8_t *buf = (uint8_t *) arg;
+    static int ctr = MAX;
+    if(ctr++ >= MAX) {
+        gpio_toggle_pin(GPIOB, 27);
+        ctr = 0;
+        uart_write(&SD1, buf, BUF_SZ/2);
+        //uart_putc(&SD1, 'A');
+	//uart_putc(&SD1, 'A');
+    }
+}
+
+#endif
+
+
+
+void ADC_Handler(void) {
+    static uint16_t n = 0;
+    static uint16_t buf[BUF_SZ];
+
+    buf[n++] = ADC->LCDR & 0xFFF;
+    n &= BUF_SZ_MSK;
+    if (!(n & BUF_MIDPOINT_MSK)) {
+
+        reactor_add_handler(send_fun,
+                            (hcos_word_t) (buf + (n ^ (BUF_SZ/2))));
+    }
+}
+
+
+void my_func(hcos_word_t arg){
+    ADC_Handler();
+}
+
+
+adc_t ADCD1;
+
+void adc_start(adc_config_t* adc_config) {
+    ADC->CR = ADC_CR_SWRST;
+    ADC->MR = ADC_MR_FREERUN | code_adc_mr_settling(adc_config->settling) |
+        code_adc_mr_tracking(adc_config->tracking) | code_adc_mr_transfer(adc_config->transfer) |
+        code_adc_mr_prescaler(adc_config->prescaler) | code_adc_mr_startup(adc_config->startup);
+    
+
+    
+    ADC->CHER = 0x2;
+
+
+    NVIC_EnableIRQ(ADC_IRQn);
+    NVIC_SetPriority(ADC_IRQn, 3);
+    PMC_ADC_CLK_ENABLE();
+    
+    ADC->IER = ADC_IER_DRDY;
+    ADC->CR = ADC_CR_START;
+    
 }
 
 #if 0

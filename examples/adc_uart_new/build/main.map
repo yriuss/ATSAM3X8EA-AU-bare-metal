@@ -39,7 +39,7 @@ LOAD build/adc.o
 LOAD build/main.o
                 0x0000000000000200                STACK_SIZE = DEFINED (STACK_SIZE)?STACK_SIZE:0x200
 
-.text           0x0000000000080000      0xae8
+.text           0x0000000000080000      0xb58
                 0x0000000000080000                . = ALIGN (0x4)
                 0x0000000000080000                _sfixed = .
  *(.vectors .vectors.*)
@@ -120,73 +120,73 @@ LOAD build/main.o
                 0x00000000000807e8                uart_write
                 0x0000000000080842                uart_read
                 0x000000000008087c                UART_Handler
- .text          0x000000000008095c       0x18 build/adc.o
-                0x000000000008095c                adc_init
- .text          0x0000000000080974       0x8c build/main.o
-                0x0000000000080974                send_fun
+ .text          0x000000000008095c       0xfc build/adc.o
+                0x000000000008095c                send_fun
+                0x0000000000080990                adc_init
                 0x00000000000809a8                ADC_Handler
                 0x00000000000809ec                my_func
-                0x00000000000809f0                blink_cb
- .text.startup  0x0000000000080a00       0x84 build/main.o
-                0x0000000000080a00                main
+                0x00000000000809f0                adc_start
+ .text          0x0000000000080a58        0x0 build/main.o
+ .text.startup  0x0000000000080a58       0x8c build/main.o
+                0x0000000000080a58                main
  *(.glue_7t)
- .glue_7t       0x0000000000080a84        0x0 linker stubs
+ .glue_7t       0x0000000000080ae4        0x0 linker stubs
  *(.glue_7)
- .glue_7        0x0000000000080a84        0x0 linker stubs
+ .glue_7        0x0000000000080ae4        0x0 linker stubs
  *(.rodata .rodata* .gnu.linkonce.r.*)
- .rodata        0x0000000000080a84       0x3c build/uart.o
-                0x0000000000080a84                pin_cfgs
- .rodata        0x0000000000080ac0       0x28 build/main.o
+ .rodata        0x0000000000080ae4       0x3c build/uart.o
+                0x0000000000080ae4                pin_cfgs
+ .rodata        0x0000000000080b20       0x38 build/main.o
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x0000000000080ae8                . = ALIGN (0x4)
+                0x0000000000080b58                . = ALIGN (0x4)
  *(.init)
-                0x0000000000080ae8                . = ALIGN (0x4)
-                0x0000000000080ae8                __preinit_array_start = .
+                0x0000000000080b58                . = ALIGN (0x4)
+                0x0000000000080b58                __preinit_array_start = .
  *(.preinit_array)
-                0x0000000000080ae8                __preinit_array_end = .
-                0x0000000000080ae8                . = ALIGN (0x4)
-                0x0000000000080ae8                __init_array_start = .
+                0x0000000000080b58                __preinit_array_end = .
+                0x0000000000080b58                . = ALIGN (0x4)
+                0x0000000000080b58                __init_array_start = .
  *(SORT_BY_NAME(.init_array.*))
  *(.init_array)
-                0x0000000000080ae8                __init_array_end = .
-                0x0000000000080ae8                . = ALIGN (0x4)
+                0x0000000000080b58                __init_array_end = .
+                0x0000000000080b58                . = ALIGN (0x4)
  *crtbegin.o(.ctors)
  *(EXCLUDE_FILE(*crtend.o) .ctors)
  *(SORT_BY_NAME(.ctors.*))
  *crtend.o(.ctors)
-                0x0000000000080ae8                . = ALIGN (0x4)
+                0x0000000000080b58                . = ALIGN (0x4)
  *(.fini)
-                0x0000000000080ae8                . = ALIGN (0x4)
-                0x0000000000080ae8                __fini_array_start = .
+                0x0000000000080b58                . = ALIGN (0x4)
+                0x0000000000080b58                __fini_array_start = .
  *(.fini_array)
  *(SORT_BY_NAME(.fini_array.*))
-                0x0000000000080ae8                __fini_array_end = .
+                0x0000000000080b58                __fini_array_end = .
  *crtbegin.o(.dtors)
  *(EXCLUDE_FILE(*crtend.o) .dtors)
  *(SORT_BY_NAME(.dtors.*))
  *crtend.o(.dtors)
-                0x0000000000080ae8                . = ALIGN (0x4)
-                0x0000000000080ae8                _efixed = .
+                0x0000000000080b58                . = ALIGN (0x4)
+                0x0000000000080b58                _efixed = .
 
-.vfp11_veneer   0x0000000000080ae8        0x0
- .vfp11_veneer  0x0000000000080ae8        0x0 linker stubs
+.vfp11_veneer   0x0000000000080b58        0x0
+ .vfp11_veneer  0x0000000000080b58        0x0 linker stubs
 
-.v4_bx          0x0000000000080ae8        0x0
- .v4_bx         0x0000000000080ae8        0x0 linker stubs
+.v4_bx          0x0000000000080b58        0x0
+ .v4_bx         0x0000000000080b58        0x0 linker stubs
 
-.iplt           0x0000000000080ae8        0x0
- .iplt          0x0000000000080ae8        0x0 build/startup_sam3x8a.o
+.iplt           0x0000000000080b58        0x0
+ .iplt          0x0000000000080b58        0x0 build/startup_sam3x8a.o
 
-.igot.plt       0x0000000000080ae8        0x0
- .igot.plt      0x0000000000080ae8        0x0 build/startup_sam3x8a.o
+.igot.plt       0x0000000000080b58        0x0
+ .igot.plt      0x0000000000080b58        0x0 build/startup_sam3x8a.o
 
-.rel.dyn        0x0000000000080ae8        0x0
- .rel.iplt      0x0000000000080ae8        0x0 build/startup_sam3x8a.o
-                0x0000000000080ae8                . = ALIGN (0x4)
-                0x0000000000080ae8                _data_flash = .
+.rel.dyn        0x0000000000080b58        0x0
+ .rel.iplt      0x0000000000080b58        0x0 build/startup_sam3x8a.o
+                0x0000000000080b58                . = ALIGN (0x4)
+                0x0000000000080b58                _data_flash = .
                 0x0000000020070000                . = ORIGIN (ram)
 
-.relocate       0x0000000020070000        0x4 load address 0x0000000000080ae8
+.relocate       0x0000000020070000        0x4 load address 0x0000000000080b58
                 0x0000000020070000                . = ALIGN (0x4)
                 0x0000000020070000                _data_begin = .
  *(.ramfunc .ramfunc.*)
@@ -200,12 +200,12 @@ LOAD build/main.o
  .data          0x0000000020070000        0x0 build/reactor.o
  .data          0x0000000020070000        0x0 build/gpio.o
  .data          0x0000000020070000        0x0 build/uart.o
- .data          0x0000000020070000        0x0 build/adc.o
- .data          0x0000000020070000        0x4 build/main.o
+ .data          0x0000000020070000        0x4 build/adc.o
+ .data          0x0000000020070004        0x0 build/main.o
                 0x0000000020070004                . = ALIGN (0x4)
                 0x0000000020070004                _data_end = .
 
-.bss            0x0000000020070004      0x48c load address 0x0000000000080aec
+.bss            0x0000000020070004      0x48c load address 0x0000000000080b5c
                 0x0000000020070004                . = ALIGN (0x4)
                 0x0000000020070004                _bss_begin = .
  *(.bss .bss.*)
@@ -219,8 +219,8 @@ LOAD build/main.o
  .bss           0x0000000020070008       0x4c build/reactor.o
  .bss           0x0000000020070054        0x0 build/gpio.o
  .bss           0x0000000020070054        0x0 build/uart.o
- .bss           0x0000000020070054        0x0 build/adc.o
- .bss           0x0000000020070054       0x42 build/main.o
+ .bss           0x0000000020070054       0x42 build/adc.o
+ .bss           0x0000000020070096        0x0 build/main.o
  *(COMMON)
  *fill*         0x0000000020070096        0x2 
  COMMON         0x0000000020070098       0x70 build/virtual_timer.o
@@ -241,7 +241,7 @@ LOAD build/main.o
                 0x0000000020087df8                _stack_begin = (_stack_end - STACK_SIZE)
                 0x0000000020087df8                . = _stack_begin
 
-.stack          0x0000000020070490      0x200 load address 0x0000000000080f78
+.stack          0x0000000020070490      0x200 load address 0x0000000000080fe8
                 0x0000000020070690                . = (. + STACK_SIZE)
  *fill*         0x0000000020070490      0x200 
 OUTPUT(build/main.elf elf32-littlearm)
@@ -290,7 +290,7 @@ Cross Reference Table
 
 Symbol                                            File
 ADCD1                                             build/adc.o
-ADC_Handler                                       build/main.o
+ADC_Handler                                       build/adc.o
                                                   build/startup_sam3x8a.o
 BusFault_Handler                                  build/startup_sam3x8a.o
 CAN0_Handler                                      build/startup_sam3x8a.o
@@ -316,6 +316,7 @@ RTT_Handler                                       build/startup_sam3x8a.o
 Reset_Handler                                     build/startup_sam3x8a.o
 SD1                                               build/uart.o
                                                   build/main.o
+                                                  build/adc.o
 SD2                                               build/uart.o
 SD3                                               build/uart.o
 SD4                                               build/uart.o
@@ -351,7 +352,8 @@ _data_flash                                       build/startup_sam3x8a.o
 _stack_end                                        build/startup_sam3x8a.o
 adc_init                                          build/adc.o
                                                   build/system_init.o
-blink_cb                                          build/main.o
+adc_start                                         build/adc.o
+                                                  build/main.o
 board_init                                        build/board_init.o
                                                   build/startup_sam3x8a.o
 dummy_init_fun                                    build/startup_sam3x8a.o
@@ -362,17 +364,18 @@ gpio_set_group_mode                               build/gpio.o
                                                   build/board_init.o
 main                                              build/main.o
                                                   build/startup_sam3x8a.o
-my_func                                           build/main.o
+memset                                            build/main.o
+my_func                                           build/adc.o
 pin_cfgs                                          build/uart.o
 reactor_add_handlerI                              build/reactor.o
-                                                  build/main.o
+                                                  build/adc.o
                                                   build/uart.o
                                                   build/systick_handler.o
 reactor_init                                      build/reactor.o
                                                   build/system_init.o
 reactor_start                                     build/reactor.o
                                                   build/main.o
-send_fun                                          build/main.o
+send_fun                                          build/adc.o
 system_init                                       build/system_init.o
                                                   build/startup_sam3x8a.o
 systick_no_ticks                                  build/systick_handler.o
@@ -385,7 +388,7 @@ uart_start                                        build/uart.o
                                                   build/main.o
 uart_stop                                         build/uart.o
 uart_write                                        build/uart.o
-                                                  build/main.o
+                                                  build/adc.o
 user_init                                         build/startup_sam3x8a.o
 vt_add_non_rt_handlerI                            build/virtual_timer.o
 vt_add_rt_handlerI                                build/virtual_timer.o

@@ -10,6 +10,7 @@
 
 #define ADC_NBR_CH_IN_GROUP  16
 
+
 #ifdef ADC_USE_DMA
 #undef ADC_USE_DMA
 #define ADC_USE_DMA 1
@@ -20,7 +21,7 @@ typedef struct {
     /* Channels to be converted. To make the struct size a multiple of
        4 bytes, make the number of elements equal to 4*m + 2 >= number
        of channels */
-    uint8_t ch[((ADC_NBR_CH_IN_GROUP + 1) & ~0x3) + 2];
+    uint8_t ch[((ADC_NBR_CH_IN_GROUP + 3) & ~0x3)];
     uint8_t len;        /* Number of active channels in conversion
                                         group */
     uint8_t seq_order;  /* Define if the channels are sampled in the
@@ -34,7 +35,7 @@ typedef struct {
 } adc_group_t;
 
 //TODO: add external trigger configuration
-typedef uint16_t adc_sample_t;
+typedef uint16_t adc_buffer_t;
 /* The data type below is not needed for the SAM3X microcontroller,
    but is here to allow for future portability */
 typedef enum {
@@ -43,11 +44,13 @@ typedef enum {
 
 typedef struct {
     adc_group_t group;      /* ADC Group configuration */
+/*
     adc_config_sr_t sr[ADC_NBR_CH_IN_GROUP]; /* Sample Rate of each
                                                 channel. Not used in
                                                 SAM3X */
     uint8_t align_mode;    /* Right or Left word alignment. Not used
-                              in SAM3X */
+                              in SAM3X 
+*/
     uint8_t freerun_mode;  /* Continuous (!= 0) or Single mode */
     uint8_t trigger;       /* Set ADC Trigger source (0 disables it) */
     uint8_t lowres_mode;   /* Low resolution mode on (!= 0) or off */
@@ -78,7 +81,7 @@ typedef struct {
 typedef struct {
     ADC_TypeDef *dev;               /* ADC device */
 
-    adc_sample_t *samples;   /* Storage of ADC readings. Provide a
+    adc_buffer_t *buf;   /* Storage of ADC readings. Provide a
                               * buffer with a minimum size:
                               * sizeof(adc_sample_t) (conversion
                               * group's length)
@@ -100,8 +103,9 @@ typedef struct {
 extern adc_t ADCD1;
 
 void adc_init(void);
+void adc_start(adc_config_t* adc_config);
 void adc_config_sample_rate(adc_t *drv, int n, adc_config_sr_t sr);
-int adc_start(adc_t *drv, adc_config_t *config);
+//int adc_start(adc_t *drv, adc_config_t *config);
 int adc_start_conversion(adc_t *drv, uint16_t* buf, uint16_t n);
 int adc_stop_conversion(adc_t *drv);
 int adc_stop(adc_t *drv);

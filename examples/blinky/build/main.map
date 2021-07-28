@@ -39,7 +39,7 @@ LOAD build/adc.o
 LOAD build/main.o
                 0x0000000000000200                STACK_SIZE = DEFINED (STACK_SIZE)?STACK_SIZE:0x200
 
-.text           0x0000000000080000      0xae8
+.text           0x0000000000080000      0xc3c
                 0x0000000000080000                . = ALIGN (0x4)
                 0x0000000000080000                _sfixed = .
  *(.vectors .vectors.*)
@@ -56,6 +56,7 @@ LOAD build/main.o
                 0x00000000000800f4                TWI1_Handler
                 0x00000000000800f4                PendSV_Handler
                 0x00000000000800f4                NMI_Handler
+                0x00000000000800f4                ADC_Handler
                 0x00000000000800f4                USART0_Handler
                 0x00000000000800f4                RTT_Handler
                 0x00000000000800f4                EFC1_Handler
@@ -90,103 +91,99 @@ LOAD build/main.o
                 0x00000000000800f6                dummy_init_fun
                 0x00000000000800f6                user_init
                 0x00000000000800f8                Reset_Handler
- .text          0x000000000008015c       0x10 build/board_init.o
+ .text          0x000000000008015c       0x18 build/board_init.o
                 0x000000000008015c                board_init
- .text          0x000000000008016c       0xb0 build/system_init.o
-                0x000000000008016c                system_init
- .text          0x000000000008021c      0x110 build/virtual_timer.o
-                0x0000000000080220                vt_add_rt_handlerI
-                0x0000000000080244                vt_add_non_rt_handlerI
-                0x0000000000080288                vt_delete_rt_handlerI
-                0x00000000000802ac                vt_delete_non_rt_handlerI
-                0x00000000000802e4                vt_update_non_rt_handlerI
- .text          0x000000000008032c        0x4 build/virtual_timer_impl.o
-                0x000000000008032c                vt_init
-                0x000000000008032e                vt_deinit
- .text          0x0000000000080330       0x78 build/systick_handler.o
-                0x0000000000080330                SysTick_Handler
- .text          0x00000000000803a8       0x98 build/reactor.o
-                0x00000000000803a8                reactor_init
-                0x00000000000803b8                reactor_start
-                0x000000000008040c                reactor_add_handlerI
- .text          0x0000000000080440       0xb4 build/gpio.o
-                0x0000000000080440                gpio_set_group_mode
- .text          0x00000000000804f4      0x468 build/uart.o
-                0x00000000000804f4                uart_init
-                0x00000000000805d0                uart_start
-                0x00000000000806e8                uart_stop
-                0x0000000000080764                uart_putc
-                0x00000000000807b4                uart_getc
-                0x00000000000807e8                uart_write
-                0x0000000000080842                uart_read
-                0x000000000008087c                UART_Handler
- .text          0x000000000008095c       0x18 build/adc.o
-                0x000000000008095c                adc_init
- .text          0x0000000000080974       0x8c build/main.o
-                0x0000000000080974                send_fun
-                0x00000000000809a8                ADC_Handler
-                0x00000000000809ec                my_func
-                0x00000000000809f0                blink_cb
- .text.startup  0x0000000000080a00       0x84 build/main.o
-                0x0000000000080a00                main
+ .text          0x0000000000080174      0x170 build/system_init.o
+                0x000000000008020c                system_init
+ .text          0x00000000000802e4      0x110 build/virtual_timer.o
+                0x00000000000802e8                vt_add_rt_handlerI
+                0x000000000008030c                vt_add_non_rt_handlerI
+                0x0000000000080350                vt_delete_rt_handlerI
+                0x0000000000080374                vt_delete_non_rt_handlerI
+                0x00000000000803ac                vt_update_non_rt_handlerI
+ .text          0x00000000000803f4       0xe4 build/virtual_timer_impl.o
+                0x00000000000804b0                vt_init
+                0x00000000000804c8                vt_deinit
+ .text          0x00000000000804d8       0x78 build/systick_handler.o
+                0x00000000000804d8                SysTick_Handler
+ .text          0x0000000000080550       0x98 build/reactor.o
+                0x0000000000080550                reactor_init
+                0x0000000000080560                reactor_start
+                0x00000000000805b4                reactor_add_handlerI
+ .text          0x00000000000805e8      0x16c build/gpio.o
+                0x00000000000805e8                gpio_set_group_mode
+ .text          0x0000000000080754      0x468 build/uart.o
+                0x0000000000080754                uart_init
+                0x0000000000080830                uart_start
+                0x0000000000080948                uart_stop
+                0x00000000000809c4                uart_putc
+                0x0000000000080a14                uart_getc
+                0x0000000000080a48                uart_write
+                0x0000000000080aa2                uart_read
+                0x0000000000080adc                UART_Handler
+ .text          0x0000000000080bbc       0x18 build/adc.o
+                0x0000000000080bbc                adc_init
+ .text          0x0000000000080bd4       0x14 build/main.o
+                0x0000000000080bd4                blinky_cb
+ .text.startup  0x0000000000080be8       0x18 build/main.o
+                0x0000000000080be8                main
  *(.glue_7t)
- .glue_7t       0x0000000000080a84        0x0 linker stubs
+ .glue_7t       0x0000000000080c00        0x0 linker stubs
  *(.glue_7)
- .glue_7        0x0000000000080a84        0x0 linker stubs
+ .glue_7        0x0000000000080c00        0x0 linker stubs
  *(.rodata .rodata* .gnu.linkonce.r.*)
- .rodata        0x0000000000080a84       0x3c build/uart.o
-                0x0000000000080a84                pin_cfgs
- .rodata        0x0000000000080ac0       0x28 build/main.o
+ .rodata        0x0000000000080c00       0x3c build/uart.o
+                0x0000000000080c00                pin_cfgs
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x0000000000080ae8                . = ALIGN (0x4)
+                0x0000000000080c3c                . = ALIGN (0x4)
  *(.init)
-                0x0000000000080ae8                . = ALIGN (0x4)
-                0x0000000000080ae8                __preinit_array_start = .
+                0x0000000000080c3c                . = ALIGN (0x4)
+                0x0000000000080c3c                __preinit_array_start = .
  *(.preinit_array)
-                0x0000000000080ae8                __preinit_array_end = .
-                0x0000000000080ae8                . = ALIGN (0x4)
-                0x0000000000080ae8                __init_array_start = .
+                0x0000000000080c3c                __preinit_array_end = .
+                0x0000000000080c3c                . = ALIGN (0x4)
+                0x0000000000080c3c                __init_array_start = .
  *(SORT_BY_NAME(.init_array.*))
  *(.init_array)
-                0x0000000000080ae8                __init_array_end = .
-                0x0000000000080ae8                . = ALIGN (0x4)
+                0x0000000000080c3c                __init_array_end = .
+                0x0000000000080c3c                . = ALIGN (0x4)
  *crtbegin.o(.ctors)
  *(EXCLUDE_FILE(*crtend.o) .ctors)
  *(SORT_BY_NAME(.ctors.*))
  *crtend.o(.ctors)
-                0x0000000000080ae8                . = ALIGN (0x4)
+                0x0000000000080c3c                . = ALIGN (0x4)
  *(.fini)
-                0x0000000000080ae8                . = ALIGN (0x4)
-                0x0000000000080ae8                __fini_array_start = .
+                0x0000000000080c3c                . = ALIGN (0x4)
+                0x0000000000080c3c                __fini_array_start = .
  *(.fini_array)
  *(SORT_BY_NAME(.fini_array.*))
-                0x0000000000080ae8                __fini_array_end = .
+                0x0000000000080c3c                __fini_array_end = .
  *crtbegin.o(.dtors)
  *(EXCLUDE_FILE(*crtend.o) .dtors)
  *(SORT_BY_NAME(.dtors.*))
  *crtend.o(.dtors)
-                0x0000000000080ae8                . = ALIGN (0x4)
-                0x0000000000080ae8                _efixed = .
+                0x0000000000080c3c                . = ALIGN (0x4)
+                0x0000000000080c3c                _efixed = .
 
-.vfp11_veneer   0x0000000000080ae8        0x0
- .vfp11_veneer  0x0000000000080ae8        0x0 linker stubs
+.vfp11_veneer   0x0000000000080c3c        0x0
+ .vfp11_veneer  0x0000000000080c3c        0x0 linker stubs
 
-.v4_bx          0x0000000000080ae8        0x0
- .v4_bx         0x0000000000080ae8        0x0 linker stubs
+.v4_bx          0x0000000000080c3c        0x0
+ .v4_bx         0x0000000000080c3c        0x0 linker stubs
 
-.iplt           0x0000000000080ae8        0x0
- .iplt          0x0000000000080ae8        0x0 build/startup_sam3x8a.o
+.iplt           0x0000000000080c3c        0x0
+ .iplt          0x0000000000080c3c        0x0 build/startup_sam3x8a.o
 
-.igot.plt       0x0000000000080ae8        0x0
- .igot.plt      0x0000000000080ae8        0x0 build/startup_sam3x8a.o
+.igot.plt       0x0000000000080c3c        0x0
+ .igot.plt      0x0000000000080c3c        0x0 build/startup_sam3x8a.o
 
-.rel.dyn        0x0000000000080ae8        0x0
- .rel.iplt      0x0000000000080ae8        0x0 build/startup_sam3x8a.o
-                0x0000000000080ae8                . = ALIGN (0x4)
-                0x0000000000080ae8                _data_flash = .
+.rel.dyn        0x0000000000080c3c        0x0
+ .rel.iplt      0x0000000000080c3c        0x0 build/startup_sam3x8a.o
+                0x0000000000080c3c                . = ALIGN (0x4)
+                0x0000000000080c3c                _data_flash = .
                 0x0000000020070000                . = ORIGIN (ram)
 
-.relocate       0x0000000020070000        0x4 load address 0x0000000000080ae8
+.relocate       0x0000000020070000        0x0 load address 0x0000000000080c3c
                 0x0000000020070000                . = ALIGN (0x4)
                 0x0000000020070000                _data_begin = .
  *(.ramfunc .ramfunc.*)
@@ -201,49 +198,48 @@ LOAD build/main.o
  .data          0x0000000020070000        0x0 build/gpio.o
  .data          0x0000000020070000        0x0 build/uart.o
  .data          0x0000000020070000        0x0 build/adc.o
- .data          0x0000000020070000        0x4 build/main.o
-                0x0000000020070004                . = ALIGN (0x4)
-                0x0000000020070004                _data_end = .
+ .data          0x0000000020070000        0x0 build/main.o
+                0x0000000020070000                . = ALIGN (0x4)
+                0x0000000020070000                _data_end = .
 
-.bss            0x0000000020070004      0x48c load address 0x0000000000080aec
-                0x0000000020070004                . = ALIGN (0x4)
-                0x0000000020070004                _bss_begin = .
+.bss            0x0000000020070000      0x448 load address 0x0000000000080c3c
+                0x0000000020070000                . = ALIGN (0x4)
+                0x0000000020070000                _bss_begin = .
  *(.bss .bss.*)
- .bss           0x0000000020070004        0x0 build/startup_sam3x8a.o
- .bss           0x0000000020070004        0x0 build/board_init.o
- .bss           0x0000000020070004        0x0 build/system_init.o
- .bss           0x0000000020070004        0x0 build/virtual_timer.o
- .bss           0x0000000020070004        0x0 build/virtual_timer_impl.o
- .bss           0x0000000020070004        0x4 build/systick_handler.o
-                0x0000000020070004                systick_no_ticks
- .bss           0x0000000020070008       0x4c build/reactor.o
- .bss           0x0000000020070054        0x0 build/gpio.o
- .bss           0x0000000020070054        0x0 build/uart.o
- .bss           0x0000000020070054        0x0 build/adc.o
- .bss           0x0000000020070054       0x42 build/main.o
+ .bss           0x0000000020070000        0x0 build/startup_sam3x8a.o
+ .bss           0x0000000020070000        0x0 build/board_init.o
+ .bss           0x0000000020070000        0x0 build/system_init.o
+ .bss           0x0000000020070000        0x0 build/virtual_timer.o
+ .bss           0x0000000020070000        0x0 build/virtual_timer_impl.o
+ .bss           0x0000000020070000        0x4 build/systick_handler.o
+                0x0000000020070000                systick_no_ticks
+ .bss           0x0000000020070004       0x4c build/reactor.o
+ .bss           0x0000000020070050        0x0 build/gpio.o
+ .bss           0x0000000020070050        0x0 build/uart.o
+ .bss           0x0000000020070050        0x0 build/adc.o
+ .bss           0x0000000020070050        0x0 build/main.o
  *(COMMON)
- *fill*         0x0000000020070096        0x2 
- COMMON         0x0000000020070098       0x70 build/virtual_timer.o
-                0x0000000020070098                vt_non_rt_data_array
-                0x00000000200700d8                vt_non_rt_handler_array
-                0x00000000200700f8                vt_rt_handler_array
- COMMON         0x0000000020070108      0x370 build/uart.o
-                0x0000000020070108                SD5
-                0x00000000200701b8                SD2
-                0x0000000020070268                SD3
-                0x0000000020070318                SD4
-                0x00000000200703c8                SD1
- COMMON         0x0000000020070478       0x18 build/adc.o
-                0x0000000020070478                ADCD1
-                0x0000000020070490                . = ALIGN (0x4)
-                0x0000000020070490                _bss_end = .
+ COMMON         0x0000000020070050       0x70 build/virtual_timer.o
+                0x0000000020070050                vt_non_rt_data_array
+                0x0000000020070090                vt_non_rt_handler_array
+                0x00000000200700b0                vt_rt_handler_array
+ COMMON         0x00000000200700c0      0x370 build/uart.o
+                0x00000000200700c0                SD5
+                0x0000000020070170                SD2
+                0x0000000020070220                SD3
+                0x00000000200702d0                SD4
+                0x0000000020070380                SD1
+ COMMON         0x0000000020070430       0x18 build/adc.o
+                0x0000000020070430                ADCD1
+                0x0000000020070448                . = ALIGN (0x4)
+                0x0000000020070448                _bss_end = .
                 0x0000000020087ff8                _stack_end = ALIGN (((ORIGIN (ram) + LENGTH (ram)) - 0x8), 0x8)
                 0x0000000020087df8                _stack_begin = (_stack_end - STACK_SIZE)
                 0x0000000020087df8                . = _stack_begin
 
-.stack          0x0000000020070490      0x200 load address 0x0000000000080f78
-                0x0000000020070690                . = (. + STACK_SIZE)
- *fill*         0x0000000020070490      0x200 
+.stack          0x0000000020070448      0x200 load address 0x0000000000081084
+                0x0000000020070648                . = (. + STACK_SIZE)
+ *fill*         0x0000000020070448      0x200 
 OUTPUT(build/main.elf elf32-littlearm)
 LOAD linker stubs
 
@@ -290,8 +286,7 @@ Cross Reference Table
 
 Symbol                                            File
 ADCD1                                             build/adc.o
-ADC_Handler                                       build/main.o
-                                                  build/startup_sam3x8a.o
+ADC_Handler                                       build/startup_sam3x8a.o
 BusFault_Handler                                  build/startup_sam3x8a.o
 CAN0_Handler                                      build/startup_sam3x8a.o
 CAN1_Handler                                      build/startup_sam3x8a.o
@@ -315,7 +310,6 @@ RTC_Handler                                       build/startup_sam3x8a.o
 RTT_Handler                                       build/startup_sam3x8a.o
 Reset_Handler                                     build/startup_sam3x8a.o
 SD1                                               build/uart.o
-                                                  build/main.o
 SD2                                               build/uart.o
 SD3                                               build/uart.o
 SD4                                               build/uart.o
@@ -350,42 +344,33 @@ _data_end                                         build/startup_sam3x8a.o
 _data_flash                                       build/startup_sam3x8a.o
 _stack_end                                        build/startup_sam3x8a.o
 adc_init                                          build/adc.o
-                                                  build/system_init.o
-blink_cb                                          build/main.o
+blinky_cb                                         build/main.o
 board_init                                        build/board_init.o
                                                   build/startup_sam3x8a.o
 dummy_init_fun                                    build/startup_sam3x8a.o
 exception_table                                   build/startup_sam3x8a.o
 gpio_set_group_mode                               build/gpio.o
-                                                  build/main.o
                                                   build/uart.o
                                                   build/board_init.o
 main                                              build/main.o
                                                   build/startup_sam3x8a.o
-my_func                                           build/main.o
 pin_cfgs                                          build/uart.o
 reactor_add_handlerI                              build/reactor.o
-                                                  build/main.o
                                                   build/uart.o
                                                   build/systick_handler.o
 reactor_init                                      build/reactor.o
                                                   build/system_init.o
 reactor_start                                     build/reactor.o
-                                                  build/main.o
-send_fun                                          build/main.o
 system_init                                       build/system_init.o
                                                   build/startup_sam3x8a.o
 systick_no_ticks                                  build/systick_handler.o
 uart_getc                                         build/uart.o
 uart_init                                         build/uart.o
-                                                  build/system_init.o
 uart_putc                                         build/uart.o
 uart_read                                         build/uart.o
 uart_start                                        build/uart.o
-                                                  build/main.o
 uart_stop                                         build/uart.o
 uart_write                                        build/uart.o
-                                                  build/main.o
 user_init                                         build/startup_sam3x8a.o
 vt_add_non_rt_handlerI                            build/virtual_timer.o
 vt_add_rt_handlerI                                build/virtual_timer.o
