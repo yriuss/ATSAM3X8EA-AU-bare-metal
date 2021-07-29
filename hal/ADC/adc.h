@@ -44,13 +44,12 @@ typedef enum {
 
 typedef struct {
     adc_group_t group;      /* ADC Group configuration */
-/*
-    adc_config_sr_t sr[ADC_NBR_CH_IN_GROUP]; /* Sample Rate of each
+
+    /*adc_config_sr_t sr[ADC_NBR_CH_IN_GROUP]; /* Sample Rate of each
                                                 channel. Not used in
                                                 SAM3X */
     uint8_t align_mode;    /* Right or Left word alignment. Not used
-                              in SAM3X 
-*/
+                              in SAM3X */
     uint8_t freerun_mode;  /* Continuous (!= 0) or Single mode */
     uint8_t trigger;       /* Set ADC Trigger source (0 disables it) */
     uint8_t lowres_mode;   /* Low resolution mode on (!= 0) or off */
@@ -103,7 +102,7 @@ typedef struct {
 extern adc_t ADCD1;
 
 void adc_init(void);
-void adc_start(adc_config_t* adc_config);
+int adc_start(adc_t* drv,adc_config_t* adc_config);
 void adc_config_sample_rate(adc_t *drv, int n, adc_config_sr_t sr);
 //int adc_start(adc_t *drv, adc_config_t *config);
 int adc_start_conversion(adc_t *drv, uint16_t* buf, uint16_t n);

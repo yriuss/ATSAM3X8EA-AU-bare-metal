@@ -36,10 +36,10 @@ int main(void) {
     };
 
     adc_config_t adc_config =
-        {.group = {.ch = {1, 0, 0, 0, 0, 0, 0, 0,
+        {.group = {.ch = {0, 1, 0, 0, 0, 0, 0, 0,
                           0, 0, 0, 0, 0, 0, 0, 0},
                    .len = 1,
-                   .seq_order = 1
+                   .seq_order = 0
                    },
          .align_mode=0,
          .freerun_mode = 1,
@@ -119,8 +119,7 @@ int main(void) {
 
     //vt_add_non_rt_handler(blink_cb, 250, 1);
     adc_t adc;
-    uint8_t len = 2;
-    uint16_t* buffer;
+    
     uart_start(&SD1, &uart_cfg);
 #if !testing
     adc_start(&adc ,&adc_config);
@@ -136,7 +135,8 @@ int main(void) {
     
     
     gpio_set_pin(GPIOB,27);
-    adc_start(&adc_config);
+    adc_start(&adc, &adc_config);
+
     reactor_start();
 #endif
 
