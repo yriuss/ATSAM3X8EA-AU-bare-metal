@@ -39,7 +39,7 @@ LOAD build/adc.o
 LOAD build/main.o
                 0x0000000000000200                STACK_SIZE = DEFINED (STACK_SIZE)?STACK_SIZE:0x200
 
-.text           0x0000000000080000      0xb58
+.text           0x0000000000080000      0xb50
                 0x0000000000080000                . = ALIGN (0x4)
                 0x0000000000080000                _sfixed = .
  *(.vectors .vectors.*)
@@ -127,66 +127,66 @@ LOAD build/main.o
                 0x00000000000809ec                my_func
                 0x00000000000809f0                adc_start
  .text          0x0000000000080a58        0x0 build/main.o
- .text.startup  0x0000000000080a58       0x8c build/main.o
+ .text.startup  0x0000000000080a58       0x68 build/main.o
                 0x0000000000080a58                main
  *(.glue_7t)
- .glue_7t       0x0000000000080ae4        0x0 linker stubs
+ .glue_7t       0x0000000000080ac0        0x0 linker stubs
  *(.glue_7)
- .glue_7        0x0000000000080ae4        0x0 linker stubs
+ .glue_7        0x0000000000080ac0        0x0 linker stubs
  *(.rodata .rodata* .gnu.linkonce.r.*)
- .rodata        0x0000000000080ae4       0x3c build/uart.o
-                0x0000000000080ae4                pin_cfgs
- .rodata        0x0000000000080b20       0x38 build/main.o
+ .rodata        0x0000000000080ac0       0x3c build/uart.o
+                0x0000000000080ac0                pin_cfgs
+ .rodata        0x0000000000080afc       0x54 build/main.o
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x0000000000080b58                . = ALIGN (0x4)
+                0x0000000000080b50                . = ALIGN (0x4)
  *(.init)
-                0x0000000000080b58                . = ALIGN (0x4)
-                0x0000000000080b58                __preinit_array_start = .
+                0x0000000000080b50                . = ALIGN (0x4)
+                0x0000000000080b50                __preinit_array_start = .
  *(.preinit_array)
-                0x0000000000080b58                __preinit_array_end = .
-                0x0000000000080b58                . = ALIGN (0x4)
-                0x0000000000080b58                __init_array_start = .
+                0x0000000000080b50                __preinit_array_end = .
+                0x0000000000080b50                . = ALIGN (0x4)
+                0x0000000000080b50                __init_array_start = .
  *(SORT_BY_NAME(.init_array.*))
  *(.init_array)
-                0x0000000000080b58                __init_array_end = .
-                0x0000000000080b58                . = ALIGN (0x4)
+                0x0000000000080b50                __init_array_end = .
+                0x0000000000080b50                . = ALIGN (0x4)
  *crtbegin.o(.ctors)
  *(EXCLUDE_FILE(*crtend.o) .ctors)
  *(SORT_BY_NAME(.ctors.*))
  *crtend.o(.ctors)
-                0x0000000000080b58                . = ALIGN (0x4)
+                0x0000000000080b50                . = ALIGN (0x4)
  *(.fini)
-                0x0000000000080b58                . = ALIGN (0x4)
-                0x0000000000080b58                __fini_array_start = .
+                0x0000000000080b50                . = ALIGN (0x4)
+                0x0000000000080b50                __fini_array_start = .
  *(.fini_array)
  *(SORT_BY_NAME(.fini_array.*))
-                0x0000000000080b58                __fini_array_end = .
+                0x0000000000080b50                __fini_array_end = .
  *crtbegin.o(.dtors)
  *(EXCLUDE_FILE(*crtend.o) .dtors)
  *(SORT_BY_NAME(.dtors.*))
  *crtend.o(.dtors)
-                0x0000000000080b58                . = ALIGN (0x4)
-                0x0000000000080b58                _efixed = .
+                0x0000000000080b50                . = ALIGN (0x4)
+                0x0000000000080b50                _efixed = .
 
-.vfp11_veneer   0x0000000000080b58        0x0
- .vfp11_veneer  0x0000000000080b58        0x0 linker stubs
+.vfp11_veneer   0x0000000000080b50        0x0
+ .vfp11_veneer  0x0000000000080b50        0x0 linker stubs
 
-.v4_bx          0x0000000000080b58        0x0
- .v4_bx         0x0000000000080b58        0x0 linker stubs
+.v4_bx          0x0000000000080b50        0x0
+ .v4_bx         0x0000000000080b50        0x0 linker stubs
 
-.iplt           0x0000000000080b58        0x0
- .iplt          0x0000000000080b58        0x0 build/startup_sam3x8a.o
+.iplt           0x0000000000080b50        0x0
+ .iplt          0x0000000000080b50        0x0 build/startup_sam3x8a.o
 
-.igot.plt       0x0000000000080b58        0x0
- .igot.plt      0x0000000000080b58        0x0 build/startup_sam3x8a.o
+.igot.plt       0x0000000000080b50        0x0
+ .igot.plt      0x0000000000080b50        0x0 build/startup_sam3x8a.o
 
-.rel.dyn        0x0000000000080b58        0x0
- .rel.iplt      0x0000000000080b58        0x0 build/startup_sam3x8a.o
-                0x0000000000080b58                . = ALIGN (0x4)
-                0x0000000000080b58                _data_flash = .
+.rel.dyn        0x0000000000080b50        0x0
+ .rel.iplt      0x0000000000080b50        0x0 build/startup_sam3x8a.o
+                0x0000000000080b50                . = ALIGN (0x4)
+                0x0000000000080b50                _data_flash = .
                 0x0000000020070000                . = ORIGIN (ram)
 
-.relocate       0x0000000020070000        0x4 load address 0x0000000000080b58
+.relocate       0x0000000020070000        0x4 load address 0x0000000000080b50
                 0x0000000020070000                . = ALIGN (0x4)
                 0x0000000020070000                _data_begin = .
  *(.ramfunc .ramfunc.*)
@@ -205,7 +205,7 @@ LOAD build/main.o
                 0x0000000020070004                . = ALIGN (0x4)
                 0x0000000020070004                _data_end = .
 
-.bss            0x0000000020070004      0x48c load address 0x0000000000080b5c
+.bss            0x0000000020070004      0x48c load address 0x0000000000080b54
                 0x0000000020070004                . = ALIGN (0x4)
                 0x0000000020070004                _bss_begin = .
  *(.bss .bss.*)
@@ -241,7 +241,7 @@ LOAD build/main.o
                 0x0000000020087df8                _stack_begin = (_stack_end - STACK_SIZE)
                 0x0000000020087df8                . = _stack_begin
 
-.stack          0x0000000020070490      0x200 load address 0x0000000000080fe8
+.stack          0x0000000020070490      0x200 load address 0x0000000000080fe0
                 0x0000000020070690                . = (. + STACK_SIZE)
  *fill*         0x0000000020070490      0x200 
 OUTPUT(build/main.elf elf32-littlearm)
@@ -364,7 +364,6 @@ gpio_set_group_mode                               build/gpio.o
                                                   build/board_init.o
 main                                              build/main.o
                                                   build/startup_sam3x8a.o
-memset                                            build/main.o
 my_func                                           build/adc.o
 pin_cfgs                                          build/uart.o
 reactor_add_handlerI                              build/reactor.o

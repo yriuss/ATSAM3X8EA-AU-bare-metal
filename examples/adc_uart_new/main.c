@@ -41,6 +41,7 @@ int main(void) {
                    .len = 1,
                    .seq_order = 1
                    },
+         .align_mode=0,
          .freerun_mode = 1,
          .trigger = 0,
          .lowres_mode = 0,
