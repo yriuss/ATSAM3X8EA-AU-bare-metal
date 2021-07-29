@@ -1,8 +1,0 @@
-{
-    "files.associations": {
-        "condition_variable": "c",
-        "hal.h": "c",
-        "uart.h": "c",
-        "dma.h": "c"
-    }
-}
