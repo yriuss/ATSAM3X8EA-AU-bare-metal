@@ -223,9 +223,6 @@ const handler_t exception_table[] = {
 void Reset_Handler(void) {
     uint32_t *src, *dst;
 
-    GPIOB->PER = 1 << 27;
-    GPIOB->OER = 1 << 27;
-    GPIOB->OWER = 1 << 27;
     /* Initialize the relocate segment */
     src = &_data_flash;
     dst = &_data_begin;

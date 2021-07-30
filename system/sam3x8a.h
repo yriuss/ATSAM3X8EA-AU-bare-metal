@@ -141,8 +141,8 @@ typedef enum {
     _IRQn                   = 36,
 #endif
     ADC_IRQn                = 37,
+    DAC_IRQn                = 38,
 #if 0
-    _IRQn                   = 38,
     _IRQn                   = 39,
     _IRQn                   = 40,
     _IRQn                   = 41,
@@ -211,58 +211,58 @@ typedef struct {
  * @brief General Purpose I/O
  */
 typedef struct {
-    WoReg PER;       
-    WoReg PDR;       
-    RoReg PSR;       
+    WoReg PER;
+    WoReg PDR;
+    RoReg PSR;
     RoReg reserved1;
-    WoReg OER;       
-    WoReg ODR;       
-    RoReg OSR;       
+    WoReg OER;
+    WoReg ODR;
+    RoReg OSR;
     RoReg reserved2;
-    WoReg IFER;      
-    WoReg IFDR;      
-    RoReg IFSR;      
+    WoReg IFER;
+    WoReg IFDR;
+    RoReg IFSR;
     RoReg reserved3;
-    WoReg SODR;      
-    WoReg CODR;      
-    RwReg ODSR;      
-    RoReg PDSR;      
-    WoReg IER;       
-    WoReg IDR;       
-    RoReg IMR;       
-    RoReg ISR;       
-    WoReg MDER;      
-    WoReg MDDR;      
-    RoReg MDSR;      
+    WoReg SODR;
+    WoReg CODR;
+    RwReg ODSR;
+    RoReg PDSR;
+    WoReg IER;
+    WoReg IDR;
+    RoReg IMR;
+    RoReg ISR;
+    WoReg MDER;
+    WoReg MDDR;
+    RoReg MDSR;
     RoReg reserved4;
-    WoReg PUDR;      
-    WoReg PUER;      
-    RoReg PUSR;      
+    WoReg PUDR;
+    WoReg PUER;
+    RoReg PUSR;
     RoReg reserved5;
-    RwReg ABSR;      
+    RwReg ABSR;
     RoReg reserved6[3];
-    WoReg SCIFSR;    
-    WoReg DIFSR;     
-    RoReg IFDGSR;    
-    RwReg SCDR;      
+    WoReg SCIFSR;
+    WoReg DIFSR;
+    RoReg IFDGSR;
+    RwReg SCDR;
     RoReg reserved7[4];
-    WoReg OWER;      
-    WoReg OWDR;      
-    RoReg OWSR;      
+    WoReg OWER;
+    WoReg OWDR;
+    RoReg OWSR;
     RoReg reserved8;
-    WoReg AIMER;     
-    WoReg AIMDR;     
-    RoReg AIMMR;     
+    WoReg AIMER;
+    WoReg AIMDR;
+    RoReg AIMMR;
     RoReg reserved9;
-    WoReg ESR;       
-    WoReg LSR;       
-    RoReg ELSR;      
+    WoReg ESR;
+    WoReg LSR;
+    RoReg ELSR;
     RoReg reserved10;
-    WoReg FELLSR;    
-    WoReg REHLSR;    
-    RoReg FRLHSR;    
+    WoReg FELLSR;
+    WoReg REHLSR;
+    RoReg FRLHSR;
     RoReg reserved11;
-    RoReg LOCKSR;    
+    RoReg LOCKSR;
     RwReg WPMR;
     RoReg WPSR;
 } GPIO_TypeDef;
@@ -316,6 +316,24 @@ typedef struct {
     RoReg WPSR;
 } ADC_TypeDef;
 
+typedef struct {
+    WoReg CR;
+    RwReg MR;
+    RoReg Reserved1;
+    RoReg Reserved2;
+    WoReg CHER;
+    WoReg CHDR;
+    RoReg CHSR;
+    RoReg Reserved3;
+    WoReg CDR;
+    WoReg IER;
+    WoReg IDR;
+    RoReg IMR;
+    RoReg ISR;
+    RwReg ACR;
+    RwReg WPMR;
+    RoReg WPSR;
+} DAC_TypeDef;
 
 /* */
 #define PMC   ((Pmc_TypeDef *)0x400E0600U) /**< \brief (PMC       ) Base Address */
@@ -329,11 +347,12 @@ typedef struct {
 #define UART  ((UART_TypeDef *) 0x400E0800U)
 /* TODO: Implement USART structure. For now, using the UART
    structure */
-#define USART0 ((UART_TypeDef *) 0x40098000U)
-#define USART1 ((UART_TypeDef *) 0x4009C000U)
-#define USART2 ((UART_TypeDef *) 0x400A0000U)
-#define USART3 ((UART_TypeDef *) 0x400A4000U)
-#define ADC    ((ADC_TypeDef *)  0x400C0000U)
+#define USART0 ((UART_TypeDef *)  0x40098000U)
+#define USART1 ((UART_TypeDef *)  0x4009C000U)
+#define USART2 ((UART_TypeDef *)  0x400A0000U)
+#define USART3 ((UART_TypeDef *)  0x400A4000U)
+#define ADC    ((ADC_TypeDef *)   0x400C0000U)
+#define DAC    ((DAC_TypeDef *)   0x400C8000U)
 
 
 #define EEFC_FMR_FWS_Pos 8
@@ -375,6 +394,7 @@ typedef struct {
 #define PMC_PCER0_PIOC   (1U << PIOC_IRQn)
 #define PMC_PCER0_PIOD   (1U << PIOD_IRQn)
 #define PMC_PCER1_ADC    (1U << (ADC_IRQn - 32))
+#define PMC_PCER1_DAC    (1U << (DAC_IRQn - 32))
 
 #define CKGR_PLLAR_ONE (0x1u << 29)
 
@@ -394,7 +414,7 @@ typedef struct {
                          | CKGR_PLLAR_MULA(0x6UL)                       \
                          | CKGR_PLLAR_PLLACOUNT(0x3fUL)                 \
                          | CKGR_PLLAR_DIVA(0x1UL))
-                            
+
 #define PMC_MCKR_PRES_Pos 4
 #define PMC_MCKR_PRES_Msk (0x7 << PMC_MCKR_PRES_Pos)
 #define PMC_MCKR_PRES_CLK_1 0
@@ -498,9 +518,9 @@ typedef struct {
 #define UART_SR_TXBUFE   UART_IMR_TXBUFE
 #define UART_SR_RXBUFF   UART_IMR_RXBUFF
 
-#define ADC_CR_SWRST_Pos  0   
+#define ADC_CR_SWRST_Pos  0
 #define ADC_CR_SWRST      (1 << ADC_CR_SWRST_Pos)
-#define ADC_CR_START_Pos  1   
+#define ADC_CR_START_Pos  1
 #define ADC_CR_START      (1 << ADC_CR_START_Pos)
 #define ADC_MR_TRGEN_Pos  0
 #define ADC_MR_TRGEN      (1 << ADC_MR_TRGEN_Pos)
@@ -602,6 +622,76 @@ typedef struct {
 #define ADC_ACR_IBCTL_Pos 8
 #define ADC_ACR_IBCTL_Msk (0x3 << ADC_ACR_IBCTL_Pos)
 
+#define DAC_CR_SWRST_Pos  0
+#define DAC_CR_SWRST      (1 << DAC_CR_SWRST_Pos)
+#define DAC_MR_TRGEN_Pos  0
+#define DAC_MR_TRGEN      (1 << DAC_MR_TRGEN_Pos)
+#define DAC_MR_TRGSEL_Pos 1
+#define DAC_MR_TRGSEL_Msk (0x7 << DAC_MR_TRGSEL_Pos)
+#define DAC_MR_TRGSEL_TRIG0 (0x0 << DAC_MR_TRGSEL_Pos)
+#define DAC_MR_TRGSEL_TRIG1 (0x1 << DAC_MR_TRGSEL_Pos)
+#define DAC_MR_TRGSEL_TRIG2 (0x2 << DAC_MR_TRGSEL_Pos)
+#define DAC_MR_TRGSEL_TRIG3 (0x3 << DAC_MR_TRGSEL_Pos)
+#define DAC_MR_TRGSEL_TRIG4 (0x4 << DAC_MR_TRGSEL_Pos)
+#define DAC_MR_TRGSEL_TRIG5 (0x5 << DAC_MR_TRGSEL_Pos)
+#define DAC_MR_TRGSEL_EXTTRG DAC_MR_TRGSEL_TRIG0
+#define DAC_MR_TRGSEL_TIOA0  DAC_MR_TRGSEL_TRIG1
+#define DAC_MR_TRGSEL_TIOA1  DAC_MR_TRGSEL_TRIG2
+#define DAC_MR_TRGSEL_TIOA2  DAC_MR_TRGSEL_TRIG3
+#define DAC_MR_TRGSEL_PWM0   DAC_MR_TRGSEL_TRIG4
+#define DAC_MR_TRGSEL_PWM1   DAC_MR_TRGSEL_TRIG5
+#define DAC_MR_WORD_Pos 4
+#define DAC_MR_WORD     (1 << DAC_MR_WORD_Pos)
+#define DAC_MR_SLEEP_Pos  5
+#define DAC_MR_SLEEP      (1 << DAC_MR_SLEEP_Pos)
+#define DAC_MR_FWUP_Pos   6
+#define DAC_MR_FWUP       (1 << DAC_MR_FWUP_Pos)
+#define DAC_MR_REFRESH_Pos 8
+#define DAC_MR_REFRESH_Msk (0xFF << DAC_MR_REFRESH_Pos)
+#define DAC_MR_USER_SEL_Pos 16
+#define DAC_MR_USER_SEL_Msk  (0x3 << DAC_MR_USER_SEL_Pos)
+#define DAC_MR_USER_SEL_CH0 (0x0 << DAC_MR_USER_SEL_Pos)
+#define DAC_MR_USER_SEL_CH1 (0x1 << DAC_MR_USER_SEL_Pos)
+#define DAC_MR_TAG_Pos  20
+#define DAC_MR_TAG      (0x1 << DAC_MR_TAG_Pos)
+#define DAC_MR_MAXS_Pos   21
+#define DAC_MR_MAXS       (1 << DAC_MR_MAXS_Pos)
+#define DAC_MR_STARTUP_Pos 24
+#define DAC_MR_STARTUP_Msk (0x3F << DAC_MR_STARTUP_Pos)
+#define DAC_CHER_CH0_Pos    0
+#define DAC_CHER_CH0        (1 << DAC_CHER_CH0_Pos)
+#define DAC_CHER_CH1_Pos    1
+#define DAC_CHER_CH1        (1 << DAC_CHER_CH1_Pos)
+#define DAC_CHDR_CH0_Pos    0
+#define DAC_CHDR_CH0        (1 << DAC_CHDR_CH0_Pos)
+#define DAC_CHDR_CH1_Pos    1
+#define DAC_CHDR_CH1        (1 << DAC_CHDR_CH1_Pos)
+#define DAC_CHSR_CH0_Pos    0
+#define DAC_CHSR_CH0        (1 << DAC_CHSR_CH0_Pos)
+#define DAC_CHSR_CH1_Pos    1
+#define DAC_CHSR_CH1        (1 << DAC_CHSR_CH1_Pos)
+#define DAC_IER_TXRDY_Pos   0
+#define DAC_IER_TXRDY       (1 << DAC_IER_TXRDY_Pos)
+#define DAC_IER_EOC_Pos     1
+#define DAC_IER_EOC         (1 << DAC_IER_EOC_Pos)
+#define DAC_IER_ENDTX_Pos   2
+#define DAC_IER_ENDTX       (1 << DAC_IER_ENDTX_Pos)
+#define DAC_IER_TXBUFE_Pos  3
+#define DAC_IER_TXBUFE      (1 << DAC_IER_TXBUFE_Pos)
+#define DAC_IDR_TXRDY      DAC_IER_TXRDY
+#define DAC_IDR_EOC        DAC_IER_EOC
+#define DAC_IDR_ENDTX      DAC_IER_ENDTX
+#define DAC_IDR_TXBUFE     DAC_IER_TXBUFE
+#define DAC_IMR_TXRDY      DAC_IER_TXRDY
+#define DAC_IMR_EOC        DAC_IER_EOC
+#define DAC_IMR_ENDTX      DAC_IER_ENDTX
+#define DAC_IMR_TXBUFE     DAC_IER_TXBUFE
+#define DAC_ISR_TXRDY      DAC_IER_TXRDY
+#define DAC_ISR_EOC        DAC_IER_EOC
+#define DAC_ISR_ENDTX      DAC_IER_ENDTX
+#define DAC_ISR_TXBUFE     DAC_IER_TXBUFE
+
+
 #define code_adc_mr_settling(n) (((n) << ADC_MR_SETTLING_Pos) & \
                                  ADC_MR_SETTLING_Msk)
 #define code_adc_mr_tracking(n) (((n) << ADC_MR_TRACKTIM_Pos) & \
@@ -612,6 +702,9 @@ typedef struct {
                                  ADC_MR_STARTUP_Msk)
 #define code_adc_mr_prescaler(n) (((n) << ADC_MR_PRESCAL_Pos) & \
                                   ADC_MR_PRESCAL_Msk)
+
+#define code_dacc_mr_startup(n)  (((n) << DAC_MR_STARTUP_Pos) &  \
+                                  DAC_MR_STARTUP_Msk)
 
 
 #if 0

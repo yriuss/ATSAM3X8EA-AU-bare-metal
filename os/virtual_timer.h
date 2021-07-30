@@ -28,11 +28,11 @@ vt_add_rt_handler(rt_cb_t cb) {
 
 static inline hcos_base_int_t
 vt_add_non_rt_handler(non_rt_cb_t cb,
-                      hcos_word_t data,
+                      hcos_word_t timeout,
                       hcos_base_int_t is_periodic) {
     hcos_base_int_t rc;
     hcos_cli();
-    rc = vt_add_non_rt_handlerI(cb, data, is_periodic);
+    rc = vt_add_non_rt_handlerI(cb, timeout, is_periodic);
     hcos_sei();
     return rc;
 }
