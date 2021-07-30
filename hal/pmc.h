@@ -89,7 +89,6 @@
 #define PMC_ADC_CLK_ENABLE()     (PMC->PMC_PCER1 = PMC_PCER1_ADC)
 #define PMC_DAC_CLK_ENABLE()     (PMC->PMC_PCER1 = PMC_PCER1_DAC)
 
-
 #if 0
 #define PMC_WWDG_CLK_ENABLE()   do {				\
 	__IO uint32_t tmpreg;					\

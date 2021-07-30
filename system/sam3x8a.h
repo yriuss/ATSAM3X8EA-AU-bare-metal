@@ -396,6 +396,8 @@ typedef struct {
 #define PMC_PCER1_ADC    (1U << (ADC_IRQn - 32))
 #define PMC_PCER1_DAC    (1U << (DAC_IRQn - 32))
 
+#define PMC_PCDR1_ADC    (1U << (ADC_IRQn - 32))
+
 #define CKGR_PLLAR_ONE (0x1u << 29)
 
 #define CKGR_PLLAR_DIVA_Pos 0

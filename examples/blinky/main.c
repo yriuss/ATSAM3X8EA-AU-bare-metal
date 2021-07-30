@@ -13,6 +13,6 @@ uint32_t blinky_cb() {
 int main(void) {
     vt_add_non_rt_handler(blinky_cb, 500, 1);
     reactor_start();
-
+    
     return 0;
 }
