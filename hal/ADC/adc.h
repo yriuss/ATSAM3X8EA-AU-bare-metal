@@ -17,6 +17,11 @@
 #define ADC_DMA_PRIO DMA_PRIO_VERY_HIGH
 #endif /* ADC_USE_DMA */
 
+#define BUF_SZ_LOG 5
+#define BUF_SZ (1U << BUF_SZ_LOG)
+#define BUF_SZ_MSK (BUF_SZ - 1)
+#define BUF_MIDPOINT_MSK (BUF_SZ/2 - 1)
+
 typedef struct {
     /* Channels to be converted. To make the struct size a multiple of
        4 bytes, make the number of elements equal to 4*m + 2 >= number
@@ -139,7 +144,7 @@ int adc_stop(adc_t *drv);
 
 #define ADC_EVT_EOC(ADC_DEV)                    ( (ADC_DEV)->SR & ADC_SR_EOC )
 #define adc_disable_irq()                       ( __NVIC_DisableIRQ(ADC1_2_IRQn) )
-#define adc_read(ADC_DEV)                       ( (ADC_DEV)->DR )
+#define adc_read(ADC_DEV)                       ( (ADC_DEV)->LCDR)
 
 
 #endif

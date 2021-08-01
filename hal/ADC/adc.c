@@ -3,17 +3,6 @@
 #include "adc.h"
 #include "pmc.h"
 #include "reactor.h"
-
-
-#define BUF_SZ_LOG 5
-#define BUF_SZ (1U << BUF_SZ_LOG)
-#define BUF_SZ_MSK (BUF_SZ - 1)
-#define BUF_MIDPOINT_MSK (BUF_SZ/2 - 1)
-
-
-#define testing 1
-
-#if testing
 #include "uart.h"
 
 #define MAX 1
@@ -22,6 +11,7 @@
 #endif
 
 adc_t ADCD1;
+
 
 void adc_init(void) {
     ADCD1.dev = ADC;
@@ -34,40 +24,30 @@ void adc_init(void) {
 }
 
 
-void send_fun(hcos_word_t arg) {
-    
-    uint8_t *buf = (uint8_t *) arg;
-    static int ctr = MAX;
-    if(ctr++ >= MAX) {
-        gpio_toggle_pin(GPIOB, 27);
-        ctr = 0;
-        uart_write(&SD1, buf, BUF_SZ/2);
-        //uart_putc(&SD1, 'A');
-	//uart_putc(&SD1, 'A');
-    }
-}
-
-#endif
-
-
-
 void ADC_Handler(void) {
-    static uint16_t n = 0;
+    static uint16_t n = 0, samples = 0;
     static uint16_t buf[BUF_SZ];
+    static uint16_t eoc = 0;
 
     buf[n++] = ADC->LCDR & 0xFFF;
+
     n &= BUF_SZ_MSK;
-    if (!(n & BUF_MIDPOINT_MSK)) {
-
-        reactor_add_handler(send_fun,
+    if (!(n & BUF_MIDPOINT_MSK) && !eoc) {
+        reactor_add_handler(ADCD1.group_conv_cb,
                             (hcos_word_t) (buf + (n ^ (BUF_SZ/2))));
+        ADCD1.buf[samples] = ADC->LCDR & 0xFFF;
+        if(!(n&BUF_SZ_MSK) && samples < ADCD1.buflen){
+            samples++;
+        }else{
+            if(samples == ADCD1.buflen){
+                ADC->IDR = ADC_IDR_DRDY;
+            }
+        }                
     }
+    
 }
 
 
-void my_func(hcos_word_t arg){
-    ADC_Handler();
-}
 
 
 
@@ -94,10 +74,8 @@ int adc_start(adc_t* drv,adc_config_t* adc_config) {
     
     drv->dev->CHER = cher;
 
-    drv->buf = 0;
-    drv->buflen = 0;
 
-    drv->group_conv_cb   = adc_config->group_conv_cb;
+    ADCD1.group_conv_cb   = adc_config->group_conv_cb; // TENHO QUE PENSAR EM OUTRA FORMA
     drv->eoc_injected_cb = adc_config->eoc_injected_cb;
     drv->watchdog_cb     = adc_config->watchdog_cb;
 
@@ -109,9 +87,6 @@ int adc_start(adc_t* drv,adc_config_t* adc_config) {
     NVIC_EnableIRQ(ADC_IRQn);
     NVIC_SetPriority(ADC_IRQn, 3);
     PMC_ADC_CLK_ENABLE();
-    
-    drv->dev->IER = ADC_IER_DRDY;
-    drv->dev->CR = ADC_CR_START;
 
 #if ADC_USE_DMA == 1
     dma_start(&DMAD1);
@@ -152,10 +127,17 @@ int adc_start_conversion(adc_t* drv, uint16_t* buf, uint16_t n) {
     dma_enable(&DMAD1, drv->dma_channel);
     drv->length = 0;
 #else  /* ADC_USE_DMA == FALSE */
+
+
+
     drv->buf = buf;
     drv->buflen = n;
     drv->dev->IDR = 0xFFFFFFFF;
+
+    ADCD1.buflen = n;
+
     drv->dev->IER = ADC_IER_DRDY;
+    drv->dev->CR = ADC_CR_START;
 #endif  /* ADC_USE_DMA */
 
     drv->dev->CR |= ADC_CR_START;
