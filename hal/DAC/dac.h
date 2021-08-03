@@ -14,6 +14,47 @@
 #define DAC_DMA_PRIO DMA_PRIO_VERY_HIGH
 #endif /* DAC_USE_DMA */
 
+
+
+/* General macros */
+#define _GPIO_CRL_CNF(n)        (unsigned long) (0x3UL << (2 + (n) * 4))
+#define _GPIO_CRL_MODE(n)       (unsigned long) (0x3UL << ((n) * 4))
+
+#define SET_REG_BITS_AT_MASK(REG, MASK, VAL, POS)   ( (REG) = (((REG) & ~(MASK)) | (((VAL) << (POS)) & (MASK))) )
+
+/* Macro to Configure DAC pins */
+#define dac_set_gpio(n) \
+    do {    \
+        if (n <= 7) {   \
+            RCC->APB2ENR |= RCC_APB2ENR_IOPAEN; \
+            GPIOA->CRL &= ~(_GPIO_CRL_CNF(n)) & ~(_GPIO_CRL_MODE(n)); \
+        } else if (n <= 9) {    \
+            RCC->APB2ENR |= RCC_APB2ENR_IOPBEN; \
+            GPIOB->CRL &= ~(_GPIO_CRL_CNF(n-8)) & ~(_GPIO_CRL_MODE(n-8)); \
+        } else if (n <= 15) {   \
+            RCC->APB2ENR |= RCC_APB2ENR_IOPCEN; \
+            GPIOC->CRL &= ~(_GPIO_CRL_CNF(n-10)) & ~(_GPIO_CRL_MODE(n-10)); \
+        }   \
+    } while(0)
+
+/* Conversion macros */
+#define dac_enable_EOC_irq(DAC_DEV)    \
+    do {    \
+        __NVIC_EnableIRQ(DAC1_2_IRQn);  \
+        (DAC_DEV)->CR1 |= DAC_CR1_EOCIE; \
+    } while(0);
+
+#define DAC0 DAC_CHER_CH0
+#define DAC1 DAC_CHER_CH1
+
+#define DAC_EVT_EOC(DAC_DEV)                    ( (DAC_DEV)->SR & DAC_SR_EOC )
+#define dac_disable_irq()                       ( __NVIC_DisableIRQ(DAC1_2_IRQn) )
+
+#define dac_set(DAC_CH) DAC->CHER = DAC_CH;
+#define dac_write(value)    ( DAC->CDR = value );
+
+
+#if 0
 //TODO: add external trigger configuration
 typedef uint16_t dac_sample_t;
 /* The data type below is not needed for the SAM3X microcontroller,
@@ -56,38 +97,6 @@ int dac_start(dac_t *drv, dac_config_t *config);
 int dac_start_conversion(dac_t *drv, uint16_t* buf, uint16_t n);
 int dac_stop_conversion(dac_t *drv);
 int dac_stop(dac_t *drv);
-
-/* General macros */
-#define _GPIO_CRL_CNF(n)        (unsigned long) (0x3UL << (2 + (n) * 4))
-#define _GPIO_CRL_MODE(n)       (unsigned long) (0x3UL << ((n) * 4))
-
-#define SET_REG_BITS_AT_MASK(REG, MASK, VAL, POS)   ( (REG) = (((REG) & ~(MASK)) | (((VAL) << (POS)) & (MASK))) )
-
-/* Macro to Configure DAC pins */
-#define dac_set_gpio(n) \
-    do {    \
-        if (n <= 7) {   \
-            RCC->APB2ENR |= RCC_APB2ENR_IOPAEN; \
-            GPIOA->CRL &= ~(_GPIO_CRL_CNF(n)) & ~(_GPIO_CRL_MODE(n)); \
-        } else if (n <= 9) {    \
-            RCC->APB2ENR |= RCC_APB2ENR_IOPBEN; \
-            GPIOB->CRL &= ~(_GPIO_CRL_CNF(n-8)) & ~(_GPIO_CRL_MODE(n-8)); \
-        } else if (n <= 15) {   \
-            RCC->APB2ENR |= RCC_APB2ENR_IOPCEN; \
-            GPIOC->CRL &= ~(_GPIO_CRL_CNF(n-10)) & ~(_GPIO_CRL_MODE(n-10)); \
-        }   \
-    } while(0)
-
-/* Conversion macros */
-#define dac_enable_EOC_irq(DAC_DEV)    \
-    do {    \
-        __NVIC_EnableIRQ(DAC1_2_IRQn);  \
-        (DAC_DEV)->CR1 |= DAC_CR1_EOCIE; \
-    } while(0);
-
-#define DAC_EVT_EOC(DAC_DEV)                    ( (DAC_DEV)->SR & DAC_SR_EOC )
-#define dac_disable_irq()                       ( __NVIC_DisableIRQ(DAC1_2_IRQn) )
-#define dac_read(DAC_DEV)                       ( (DAC_DEV)->DR )
-
+#endif
 
 #endif

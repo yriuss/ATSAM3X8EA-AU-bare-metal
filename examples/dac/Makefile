@@ -1,5 +1,6 @@
 TARGET = main
 
+UPLOAD_PORT=/dev/ttyACM0
 BUILD_DIR = ./build
 BASE_DIR  = ../..
 
@@ -100,3 +101,7 @@ dumpbin: $(BUILD_DIR)/$(TARGET).bin
 .PHONY: clean
 clean:
 	rm -rf $(BUILD_DIR)
+run:
+	sudo stty -F "$(UPLOAD_PORT)" speed 1200 cs8 -cstopb -parenb 1200
+	sudo stty -F "$(UPLOAD_PORT)" speed 1200 cs8 -cstopb -parenb 1200
+	/home/edmar/.arduino15/packages/arduino/tools/bossac/1.6.1-arduino/bossac -i -d --port=ttyACM0 -U false -e -w -v -b ./build/main.bin -R 
