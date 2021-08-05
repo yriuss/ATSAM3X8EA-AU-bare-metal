@@ -24,8 +24,6 @@ void adc_init(void) {
 #endif /* ADC_USE_DMA */
 }
 
-
-int adc_start(adc_t *drv, adc_config_t *config) {
     int i;
     int lim;
     int ch;

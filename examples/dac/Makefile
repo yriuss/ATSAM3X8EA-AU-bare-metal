@@ -106,4 +106,3 @@ run:
 	sudo stty -F "$(UPLOAD_PORT)" speed 1200 cs8 -cstopb -parenb 1200
 	sudo stty -F "$(UPLOAD_PORT)" speed 1200 cs8 -cstopb -parenb 1200
 	bossac -i -d --port="$(UPLOAD_PORT)" -U false -e -w -v -b "$(BUILD_DIR)/main.bin" -R
-
