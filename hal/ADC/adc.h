@@ -90,7 +90,8 @@ typedef struct {
                               * sizeof(adc_sample_t) (conversion
                               * group's length)
                               */
-    int buflen;
+    uint16_t buflen;
+    uint8_t eoc;
     reactor_cb_t group_conv_cb;    /* End of Group conversion callback */
     reactor_cb_t eoc_injected_cb;  /* Not applicable to SAM3X. Only
                                       here for portability */
@@ -144,7 +145,5 @@ int adc_stop(adc_t *drv);
 
 #define ADC_EVT_EOC(ADC_DEV)                    ( (ADC_DEV)->SR & ADC_SR_EOC )
 #define adc_disable_irq()                       ( __NVIC_DisableIRQ(ADC1_2_IRQn) )
-#define adc_read(ADC_DEV)                       ( (ADC_DEV)->LCDR)
-
-
+#define adc_read(ADC_DEV)                       ( (ADC_DEV)->LCDR & 0xFFF)
 #endif

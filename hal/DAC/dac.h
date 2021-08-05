@@ -14,6 +14,7 @@
 #define DAC_DMA_PRIO DMA_PRIO_VERY_HIGH
 #endif /* DAC_USE_DMA */
 
+#if 0
 //TODO: add external trigger configuration
 typedef uint16_t dac_sample_t;
 /* The data type below is not needed for the SAM3X microcontroller,
@@ -56,7 +57,7 @@ int dac_start(dac_t *drv, dac_config_t *config);
 int dac_start_conversion(dac_t *drv, uint16_t* buf, uint16_t n);
 int dac_stop_conversion(dac_t *drv);
 int dac_stop(dac_t *drv);
-
+#endif
 /* General macros */
 #define _GPIO_CRL_CNF(n)        (unsigned long) (0x3UL << (2 + (n) * 4))
 #define _GPIO_CRL_MODE(n)       (unsigned long) (0x3UL << ((n) * 4))
@@ -87,7 +88,13 @@ int dac_stop(dac_t *drv);
 
 #define DAC_EVT_EOC(DAC_DEV)                    ( (DAC_DEV)->SR & DAC_SR_EOC )
 #define dac_disable_irq()                       ( __NVIC_DisableIRQ(DAC1_2_IRQn) )
-#define dac_read(DAC_DEV)                       ( (DAC_DEV)->DR )
+#define dac_write(value)                       ( DAC->CDR = value )
+#define dac_set(CH) do {                                     \
+                        DAC->MR = 0x200000|((CH & 0x2) << 16);  \
+                        DAC->CHER = CH;                      \
+                    } while(0);
+#define DAC_CH1 DAC_CHER_CH1
+#define DAC_CH0 DAC_CHER_CH0
 
 
 #endif

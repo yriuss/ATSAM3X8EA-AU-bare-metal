@@ -4,6 +4,7 @@
 #include "pmc.h"
 #include "reactor.h"
 #include "uart.h"
+#include <stddef.h>
 
 #define MAX 1
 #if 0
@@ -13,10 +14,14 @@
 adc_t ADCD1;
 
 
+uint16_t samples = 0;
+uint16_t eoc = 0;
+
 void adc_init(void) {
     ADCD1.dev = ADC;
     ADCD1.buflen = 0;
     ADCD1.group_conv_cb = 0;
+    ADCD1.eoc = 0;
 
 #if ADC_USE_DMA == 1
     ADCD1.dma_channel = DMA_ADC1_CHANNEL;
@@ -25,29 +30,43 @@ void adc_init(void) {
 
 
 void ADC_Handler(void) {
-    static uint16_t n = 0, samples = 0;
+    static uint16_t n = 0;
     static uint16_t buf[BUF_SZ];
-    static uint16_t eoc = 0;
-
-    buf[n++] = ADC->LCDR & 0xFFF;
-
+    
+    buf[n++] = adc_read(ADCD1.dev);
     n &= BUF_SZ_MSK;
-    if (!(n & BUF_MIDPOINT_MSK) && !eoc) {
-        reactor_add_handler(ADCD1.group_conv_cb,
-                            (hcos_word_t) (buf + (n ^ (BUF_SZ/2))));
-        ADCD1.buf[samples] = ADC->LCDR & 0xFFF;
-        if(!(n&BUF_SZ_MSK) && samples < ADCD1.buflen){
+    
+    if (!(n & BUF_MIDPOINT_MSK)) {
+        
+        
+        if(ADCD1.group_conv_cb != 0){
+            reactor_add_handler(ADCD1.group_conv_cb,
+                                (hcos_word_t) (buf + (n ^ (BUF_SZ/2))));
+        }
+        
+        if(!(samples%2) && samples < ADCD1.buflen*2 && ADCD1.eoc == 0){
+            ADCD1.buf[samples/2] = *(buf + (n ^ (BUF_SZ/2)));
+        }
+        
+        if((samples%2) && samples < ADCD1.buflen*2 && ADCD1.eoc == 0){
+            ADCD1.buf[samples/2] = 0;
+            ADCD1.buf[samples/2] |= *(buf + (n ^ (BUF_SZ/2)));
+        }
+        if(samples >= 202){
+            gpio_clear_pin(GPIOB, 27);
+            //ADC->IDR = ADC_IDR_DRDY;
+            if(samples == ADCD1.buflen*2)
+                ADCD1.eoc = 1;
+            //adc_stop(&ADCD1);
+            samples = 203;
+        }
+        if(samples < ADCD1.buflen * 2)
             samples++;
-        }else{
-            if(samples == ADCD1.buflen){
-                ADC->IDR = ADC_IDR_DRDY;
-            }
-        }                
     }
+    if(ADCD1.eoc == 0)
+        gpio_toggle_pin(GPIOB, 27);
     
 }
-
-
 
 
 
@@ -134,6 +153,7 @@ int adc_start_conversion(adc_t* drv, uint16_t* buf, uint16_t n) {
     drv->buflen = n;
     drv->dev->IDR = 0xFFFFFFFF;
 
+    ADCD1.buf = buf;
     ADCD1.buflen = n;
 
     drv->dev->IER = ADC_IER_DRDY;
@@ -141,7 +161,7 @@ int adc_start_conversion(adc_t* drv, uint16_t* buf, uint16_t n) {
 #endif  /* ADC_USE_DMA */
 
     drv->dev->CR |= ADC_CR_START;
-
+    
     return 0;
 }
 

@@ -6,7 +6,7 @@
 #include "uart.h"
 #include "adc.h"
 #include "pmc.h"
-
+#include "dac.h"
 
 /*
  * Callback to blink the led to show the app is active
@@ -19,7 +19,7 @@ void blink_cb(hcos_word_t arg) {
 uint16_t adc_buffer[ADC_BUFFER_SIZE];
 
 int main(void) {
-    uart_config_t uart_cfg = {.baudrate = 500000,
+    uart_config_t uart_cfg = {.baudrate = 115200,
 			      .word_length = 8,
 			      .stop_bits = 1,
 			      .parity = 0,
@@ -39,25 +39,26 @@ int main(void) {
     };
 #endif
 
-#define MAX_TICKS 500000
+#define MAX_TICKS 1000
 #define TABLE_SIZE 32
-#define TABLE_CTR_OFFSET 7
-#define TABLE_CTR_MASK (((TABLE_SIZE) << (TABLE_CTR_OFFSET)) - 1)
+#define TABLE_CTR_OFFSET 0
+#define TABLE_CTR_MASK 31
 
     uint16_t table[TABLE_SIZE] =
         {2043, 2441, 2824, 3178, 3487, 3741, 3930, 4046, 4086, 4046,
          3930, 3741, 3487, 3178, 2824, 2441, 2043, 1644, 1261,  907,
          598, 344, 155, 39, 0, 39, 155, 344, 598,  907, 1261, 1644};
     int ctr = MAX_TICKS;
-    int table_ctr = 0;
+    uint16_t table_ctr = 0;
 
-    int ctr = MAX_TICKS;
+    //int ctr = MAX_TICKS;
     uint16_t data;
     uart_start(&SD1, &uart_cfg);
 
+
     DAC->CR = DAC_CR_SWRST;
-    DAC->MR = 0;
-    DAC->CHER = DAC_CHER_CH0;
+    dac_set(DAC_CH0);
+
 
     ADC->CR = ADC_CR_SWRST;
     ADC->MR = ADC_MR_FREERUN | code_adc_mr_settling(0) |
@@ -71,15 +72,15 @@ int main(void) {
     ADC->CR = ADC_CR_START;
 
     while (1) {
-        if (DAC->ISR & DAC_ISR_DRDY) {
+        if (--ctr == 0) {
+            ctr = MAX_TICKS;
+        }
+        if (DAC->ISR & 0x1 && ctr == MAX_TICKS) {
             DAC->CDR = table[table_ctr++ >> TABLE_CTR_OFFSET];
             table_ctr &= TABLE_CTR_MASK;
         }
-        if (--ctr == 0) {
-            ctr = MAX_TICKS;
-            gpio_toggle_pin(GPIOB, 27);
-        }
-        if (ADC->ISR & ADC_ISR_DRDY) {
+        
+        if (ADC->ISR & ADC_ISR_DRDY && ctr == MAX_TICKS) {
             data = ADC->LCDR & 0xFFF;
             uart_putc(&SD1, data & 0xFF);
             uart_putc(&SD1, (data >> 8) & 0xF);

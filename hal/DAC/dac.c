@@ -7,6 +7,10 @@
 #include "dma.h"
 #endif
 
+
+
+#if 0
+
 adc_t ADCD1;
 
 void adc_init(void) {
@@ -20,7 +24,7 @@ void adc_init(void) {
 #endif /* ADC_USE_DMA */
 }
 
-#if 0
+
 int adc_start(adc_t *drv, adc_config_t *config) {
     int i;
     int lim;
