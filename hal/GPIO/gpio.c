@@ -37,8 +37,8 @@ void gpio_set_group_mode(GPIO_TypeDef *port, uint32_t mask,
     } else if ((io_mode == GPIO_AF1_MODE) ||
                (io_mode == GPIO_AF2_MODE)) {
         port->ABSR = io_mode == GPIO_AF1_MODE ?
-            (port->ABSR & ~(mask << offset)) :
-            (port->ABSR | (mask << offset));
+            (port->ABSR & ~mask) :
+            (port->ABSR | mask);
         port->PDR = mask;
     }
 
