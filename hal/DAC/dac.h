@@ -90,10 +90,13 @@ int dac_stop(dac_t *drv);
 
 #define DAC_EVT_EOC(DAC_DEV)                    ( (DAC_DEV)->SR & DAC_SR_EOC )
 #define dac_disable_irq()                       ( __NVIC_DisableIRQ(DAC1_2_IRQn) )
-#define dac_write(value)                       ( DAC->CDR = value )
+#define dac_write(value)  do{\
+		do{}while(!(DAC->ISR & 0x1));\               
+		DAC->CDR = value;\
+	}while(0);
 #define dac_set(CH) do {                                     \
                         DAC->MR = 0x200000|((CH & 0x1) << 16);  \
-                        DAC->CHER = CH;                      \
+                        DAC->CHER = CH+1;                      \
                     } while(0);
 #define DAC_CH1 1
 #define DAC_CH0 0

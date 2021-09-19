@@ -10,6 +10,18 @@
 
 #define ADC_NBR_CH_IN_GROUP  16
 
+#define A0  1 << 7
+#define A1  1 << 6
+#define A2  1 << 5
+#define A3  1 << 4
+#define A4  1 << 3
+#define A5  1 << 2
+#define A6  1 << 1
+#define A7  1 << 0
+#define A8  1 << 10
+#define A9  1 << 11
+#define A10 1 << 12
+#define A11 1 << 13
 
 #ifdef ADC_USE_DMA
 #undef ADC_USE_DMA
@@ -146,4 +158,5 @@ int adc_stop(adc_t *drv);
 #define ADC_EVT_EOC(ADC_DEV)                    ( (ADC_DEV)->SR & ADC_SR_EOC )
 #define adc_disable_irq()                       ( __NVIC_DisableIRQ(ADC1_2_IRQn) )
 #define adc_read(ADC_DEV)                       ( (ADC_DEV)->LCDR & 0xFFF)
+#define adc_sel_pin(pin)        ( ADC->CHER = pin )
 #endif
